@@ -11,4 +11,6 @@ The goal of this project is the consolidation of various routines I've developed
 - [X] Create an initial README
 - [ ] Create dataverse(?) repository for sample dataset
 - [X] Outline of overall algorithm structure
+- [ ] Break routines into modules
 - [ ] Complete merging of all routines
+- [X] Read parameter configuration file

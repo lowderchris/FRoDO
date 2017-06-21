@@ -6,50 +6,91 @@ import b_sim_netcdf
 import os
 import glob
 from datetime import datetime
-import cPickle as pickle
+#import cPickle as pickle
+import pickle
 
 import numpy as np
 from numpy import pi
 import scipy
-from scipy.io import b_sim_netcdf
+import scipy.stats
+from scipy.io import netcdf
 
 import sunpy.time
+from sunpy.physics.differential_rotation import diff_rot
+import astropy.units as u
 
-# Read a few user parameters from file
-# Include here data/output directories
-# For now, code these in place here
-frdim = [180,360]               # Output array dimensions
-sfrm = 904                      # Starting frame
-efrm = 904                      # Ending frame
-dfrm = 1                        # Frame step
-ref_sthresh = 1.00              # Reference seed threshold
-ref_ethresh = 0.70              # Reference extent threshold
-ref_bavg = 4.5508878954543137	# Reference mean B
-ref_havg = 0.26648107322354925	# Reference mean helicity
+import configparser
 
-datdir = './dat/'
-labstr = 's{0:.2f}e{1:.2f}'.format(ref_sthresh,ref_ethresh)
-outdir = datdir + 'fr' + labstr + '/'
+# Read parameters from a configuration file
+config = configparser.ConfigParser()
+config.read('config.cfg')
 
-os.system("mkdir" + outdir)
+datdir = config['paths']['datdir']
+outdir = config['paths']['outdir']
+
+sfrm = np.int(config['times']['sfrm'])
+efrm = np.int(config['times']['efrm'])
+dfrm = np.int(config['times']['dfrm'])
+
+frdim = np.array([np.int(config['array']['nlat']), np.int(config['array']['nlon'])])
+
+ref_sthresh = np.double(config['thresholds']['ref_sthresh'])
+ref_ethresh = np.double(config['thresholds']['ref_ethresh'])
+ref_bavg = np.double(config['thresholds']['ref_bavg'])
+ref_havg = np.double(config['thresholds']['ref_havg'])
+
+# Create output directories if needed
+os.system("mkdir " + outdir)
+os.system("mkdir " + outdir + 'hist/')
+
+# Remove any existing files
+os.system("rm " + outdir + "*")
+os.system("rm " + outdir + "hist/*")
 
 # Work through all of the nasty date calculations
 frm_list = np.arange(sfrm,efrm+1,step=dfrm)
 nfrm = len(frm_list)
 
-# Define any other variables needed
-dcount = 0
+# Define arrays to store surface maps
 frmap = np.zeros(frdim, dtype=np.int16)
-frcmap = np.zeros(frdim, dtype=np.in16)
+frcmap = np.zeros(frdim, dtype=np.int16)
 frhlcy = np.zeros(frdim, dtype=np.double)
 frrext = np.zeros(frdim, dtype=np.double)
-
 br0 = np.zeros(frdim, dtype=np.double)
 
+# Define an empty array of times
 tarr = []
 
+# Define a pixel area array (note the use of a sine latitude grid here)
+area_arr = (6.955e10)**2 * 4. * pi / (frdim[0] * frdim[1])
+
+# Define arrays for the storage of flux rope time histories
+fr_area = np.array([np.nan])
+fr_time = np.array([np.nan])
+fr_dur = np.array([np.nan])
+fr_mhlcy = np.array([np.nan])
+fr_nhlcy = np.array([np.nan])
+fr_sflux = np.array([np.nan])
+fr_uflux = np.array([np.nan])
+fr_mlat = np.array([np.nan])
+fr_rext = np.array([np.nan])
+fr_mrext = np.array([np.nan])
+
+frh_area = list([np.nan])
+frh_time = list([np.nan])
+frh_mhlcy = list([np.nan])
+frh_nhlcy = list([np.nan])
+frh_sflux = list([np.nan])
+frh_uflux = list([np.nan])
+frh_rext = list([np.nan])
+frh_mrext = list([np.nan])
+
+# Define arrays to store threshold levels
 sthreshs = np.zeros(nfrm, dtype=np.double)
 ethreshs = np.zeros(nfrm, dtype=np.double)
+
+# Define some loop counting information
+dcount = 0
 
 # Begin cycling through time frames
 for cfrm in frm_list:
@@ -72,11 +113,8 @@ for cfrm in frm_list:
     br = d.variables['br'][:,:,:].copy()
     bth = d.variables['bth'][:,:,:].copy()
     bph = d.variables['bph'][:,:,:].copy()
-    jr = d.variables['jr'][:,:,:].copy()
-    jth = d.variables['jth'][:,:,:].copy()
-    jph = d.variables['jph'][:,:,:].copy()
     cdate = d.date
-    ctarr = datetime.strptime(cdate,"%Y%b%d_%H%M")
+    ctarr = datetime.strptime(bytes.decode(cdate),"%Y%b%d_%H%M")
     cjuld = np.double(sunpy.time.julian_day(ctarr))
     tarr.append(ctarr)
 
@@ -85,7 +123,7 @@ for cfrm in frm_list:
 
     # Define some coordinate information
     lons, lats = np.meshgrid(ph*360./(2*pi), th*360./(2*pi)-90.)
-    frlon = np.linspace((2*pi/f(2*frdim[1])), (2*pi)-(2*pi/(2*frdim[1])), num=frdim[1], dtype=np.double)
+    frlon = np.linspace((2*pi/(2*frdim[1])), (2*pi)-(2*pi/(2*frdim[1])), num=frdim[1], dtype=np.double)
     frlat = np.linspace(-1+(1/(2*frdim[0])), 1-(1/(2*frdim[0])), num=frdim[0], dtype=np.double)
 
     frlat_edge = frlat - abs(frlat[0] - frlat[1])/2.
@@ -130,11 +168,11 @@ for cfrm in frm_list:
                 frhlcy[why1, whx1] = hlcy[ifl]
             if abs(frrext[why1, whx1]) < flrext:
                 frrext[why1, whx1] = flrext
-    if (len(whx2 == 1))&(len(why2) == 1)&(alg2):
-        if abs(frhlcy[why2, whx2]) < abs(hlcy[ifl]):
-            frhlcy[why2, whx2] = hlcy[ifl]
-        if abs(frrext[why2, whx2]) < flrext:
-            frrext[why2, whx2] = flrext
+        if (len(whx2 == 1))&(len(why2) == 1)&(alg2):
+            if abs(frhlcy[why2, whx2]) < abs(hlcy[ifl]):
+                frhlcy[why2, whx2] = hlcy[ifl]
+            if abs(frrext[why2, whx2]) < flrext:
+                frrext[why2, whx2] = flrext
 
     # Begin the process of seeding flux rope footprints within this mapping
     havg = abs(frhlcy).mean()
@@ -158,12 +196,12 @@ for cfrm in frm_list:
 
     # Compute a set of extent footprint regions
     expfp = abs(frhlcy) > ethresh
-    exfp_lab = (scipy.ndimage.label(expfp, s))[0]
+    expfp_lab = (scipy.ndimage.label(expfp, s))[0]
 
     for j in np.arange(expfp_lab.max())+1:
         wharr = np.where(expfp_lab == j)
-            if len(wharr[0]) < 10:
-                expfp_lab[wharr] = 0
+        if len(wharr[0]) < 10:
+            expfp_lab[wharr] = 0
 
     # Merge the core and extent regions
     fp_lab = np.zeros([len(frlat), len(frlon)], dtype='int32')
@@ -187,34 +225,118 @@ for cfrm in frm_list:
 
     frmap[:,:] = (frpos_lab+frneg_lab.max())*(frpos_lab!=0) + frneg_lab
 
+    # Compute a pixel shift amount to account for differential rotation
+    if dcount == 0:
+        drot = diff_rot(1 * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
+        drot = drot - drot.max()
+        drot = np.array(np.around((drot/u.deg * 180/pi) * (frlon[1]-frlon[0]))).astype(np.int)
+
+    frnlab = np.zeros(frdim, dtype=np.int16)
+    # Compare flux rope maps with prior times to label histories
+    if dcount != 0:
+        frlab = np.copy(frmap)
+        for r in np.arange(frdim[0]):
+            frmap0[r,:] = np.roll(frmap0[r,:], drot[r])
+            frhlcy0[r,:] = np.roll(frhlcy0[r,:], drot[r])
+        # Label and iterate through flux rope footprint regions
+        #for fr in np.arange(frlab.max())+1:
+        for fr in np.unique(frlab):
+            frwhr = np.where(frlab == fr)
+            frarr = frmap0[frwhr]
+            hlcyarr0 = frhlcy0[frwhr]
+            hlcyarr1 = frhlcy[frwhr]
+            hlcycheck = (np.sign(hlcyarr0.mean()) * np.sign(hlcyarr1.mean())) == 1
+            frsts = scipy.stats.mode(frarr)
+            if (float(frsts[1][0]) / len(frarr) > 0.5) & (hlcycheck) & (frsts[0][0] != 0):
+                frnlab[frwhr] = frsts[0][0]
+            else:
+                frnlab[frwhr] = regmx + 1
+                regmx = regmx + 1
+        if frnlab.max() != 0 : regmx = frnlab.max()
+        frmap = np.copy(frnlab)
+    else:
+        regmx = frmap.max()
+
+    # Record some statistics
+    for frcur in np.unique(frmap[frmap!=0]):
+        # Output location information
+        frwhr = np.where(frmap == frcur)
+        if len(fr_area) <= frcur:
+            fr_area = np.append(fr_area, len(frwhr[0]) * area_arr)
+            fr_time = np.append(fr_time, dcount)
+            fr_mlat = np.append(fr_mlat, np.mean(frlat[frwhr[0]]))
+            fr_dur = np.append(fr_dur, 1)
+            fr_mhlcy = np.append(fr_mhlcy, frhlcy[frwhr].mean())
+            fr_nhlcy = np.append(fr_nhlcy, frhlcy[frwhr].sum())
+            fr_sflux = np.append(fr_sflux, (br0[frwhr] * area_arr).sum())
+            fr_uflux = np.append(fr_uflux, abs(br0[frwhr] * area_arr).sum())
+            fr_rext = np.append(fr_rext, frrext[frwhr].mean())
+            fr_mrext = np.append(fr_mrext, frrext[frwhr].max())
+
+            frh_area.append(np.array([len(frwhr[0]) * area_arr]))
+            frh_time.append(np.array([dcount]))
+            frh_mhlcy.append(np.array([frhlcy[frwhr].mean()]))
+            frh_nhlcy.append(np.array([frhlcy[frwhr].sum()]))
+            frh_sflux.append(np.array([(br0[frwhr] * area_arr).sum()]))
+            frh_uflux.append(np.array([abs(br0[frwhr] * area_arr).sum()]))
+            frh_rext.append(np.array([frrext[frwhr].mean()]))
+            frh_mrext.append(np.array([frrext[frwhr].max()]))
+        else:
+            cflux = abs(br0[frwhr] * area_arr).sum()
+            fr_dur[frcur] = fr_dur[frcur] + 1
+
+            frh_area[frcur] = np.append(frh_area[frcur], len(frwhr[0]) * area_arr)
+            frh_time[frcur] = np.append(frh_time[frcur], dcount)
+            frh_mhlcy[frcur] = np.append(frh_mhlcy[frcur], frhlcy[frwhr].mean())
+            frh_nhlcy[frcur] = np.append(frh_nhlcy[frcur], frhlcy[frwhr].sum())
+            frh_sflux[frcur] = np.append(frh_sflux[frcur], (br0[frwhr] * area_arr).sum())
+            frh_uflux[frcur] = np.append(frh_uflux[frcur], abs(br0[frwhr] * area_arr).sum())
+            frh_rext[frcur] = np.append(frh_rext[frcur], frrext[frwhr].mean())
+            frh_mrext[frcur] = np.append(frh_mrext[frcur], frrext[frwhr].max())
+
+            if fr_uflux[frcur] < cflux:
+                fr_area[frcur] = len(frwhr[0]) * area_arr
+                fr_time[frcur] = dcount
+                fr_mlat[frcur] = np.mean(frlat[frwhr[0]])
+                fr_mhlcy[frcur] = frhlcy[frwhr].mean()
+                fr_nhlcy[frcur] = frhlcy[frwhr].sum()
+                fr_sflux[frcur] = (br0[frwhr] * area_arr).sum()
+                fr_uflux[frcur] = abs(br0[frwhr] * area_arr).sum()
+                fr_rext[frcur] = frrext[frwhr].mean()
+                fr_mrext[frcur] = frrext[frwhr].max()
+
     # Calculate footprint connectivity, and an index of flux rope fieldlines
-    frcmap = np.zeros(frdim, dtype=np.int32)
-    fr_fl = np.zeros(len(fl))
-    for ifl in np.arange(len(hlcy)):
-        alfpr1 = fl[ifl][0][0]
-        alfpr2 = fl[ifl][0][-1]
-        alfpth1 = np.sin(fl[ifl][1][0] + pi/2)
-        alfpth2 = np.sin(fl[ifl][1][-1] + pi/2)
-        alfpph1 = fl[ifl][2][0]
-        alfpph2 = fl[ifl][2][-1]
-        
-        alg1 = fl[ifl][0][0] < 1.2
-        alg2 = fl[ifl][0][-1] < 1.2
-        
-        why1 = np.where((frlat_edge < alfpth1) & np.roll((frlat_edge > alfpth1),-1))[0]
-        whx1 = np.where((frlon_edge < alfpph1) & np.roll((frlon_edge > alfpph1),-1))[0]
-        why2 = np.where((frlat_edge < alfpth2) & np.roll((frlat_edge > alfpth2),-1))[0]
-        whx2 = np.where((frlon_edge < alfpph2) & np.roll((frlon_edge > alfpph2),-1))[0]
-        
-        ## Map out the pixel connectivity
-        if (len(whx1 == 1))&(len(why1) == 1)&(frmap[why1,whx1] != 0):
-            if (len(whx2 == 1))&(len(why2) == 1):
-                frcmap[why1,whx1] = frmap[why2[0], whx2[0]]
-                fr_fl[ifl] = frmap[why1, whx1]
-        if (len(whx2 == 1))&(len(why2) == 1)&(frmap[why2,whx2] != 0):
-            if (len(whx1 == 1))&(len(why1) == 1):
-                frcmap[why2,whx2] = frmap[why1[0], whx1[0]]
-                fr_fl[ifl] = frmap[why2, whx2]
+    #frcmap = np.zeros(frdim, dtype=np.int32)
+    #fr_fl = np.zeros(len(fl))
+    #for ifl in np.arange(len(hlcy)):
+    #    alfpr1 = fl[ifl][0][0]
+    #    alfpr2 = fl[ifl][0][-1]
+    #    alfpth1 = np.sin(fl[ifl][1][0] + pi/2)
+    #    alfpth2 = np.sin(fl[ifl][1][-1] + pi/2)
+    #    alfpph1 = fl[ifl][2][0]
+    #    alfpph2 = fl[ifl][2][-1]
+    #    
+    #    alg1 = fl[ifl][0][0] < 1.2
+    #    alg2 = fl[ifl][0][-1] < 1.2
+    #    
+    #    why1 = np.where((frlat_edge < alfpth1) & np.roll((frlat_edge > alfpth1),-1))[0]
+    #    whx1 = np.where((frlon_edge < alfpph1) & np.roll((frlon_edge > alfpph1),-1))[0]
+    #    why2 = np.where((frlat_edge < alfpth2) & np.roll((frlat_edge > alfpth2),-1))[0]
+    #    whx2 = np.where((frlon_edge < alfpph2) & np.roll((frlon_edge > alfpph2),-1))[0]
+    #    
+    #    ## Map out the pixel connectivity
+    #    if (len(whx1 == 1))&(len(why1) == 1)&(frmap[why1,whx1] != 0):
+    #        if (len(whx2 == 1))&(len(why2) == 1):
+    #            frcmap[why1,whx1] = frmap[why2[0], whx2[0]]
+    #            fr_fl[ifl] = frmap[why1, whx1]
+    #    if (len(whx2 == 1))&(len(why2) == 1)&(frmap[why2,whx2] != 0):
+    #        if (len(whx1 == 1))&(len(why1) == 1):
+    #            frcmap[why2,whx2] = frmap[why1[0], whx1[0]]
+    #            fr_fl[ifl] = frmap[why2, whx2]
+
+    # Store flux rope and helicity mapping for future use
+    frmap0 = np.copy(frmap)
+    frhlcy0 = np.copy(frhlcy)
 
     # Output appropriate arrays to disk
     outfile = netcdf.netcdf_file(outdir + 'fr_' + csfrm + '.nc', 'w')
@@ -226,9 +348,9 @@ for cfrm in frm_list:
     out_frmap[:] = frmap
     out_frmap.units = 'Flux rope footprint label (unitless)'
     
-    out_frcmap = outfile.createVariable('frcmap', np.int16, ('lat', 'lon'))
-    out_frcmap[:] = frcmap
-    out_frcmap.units= 'Flux rope footprint connectivity label (unitless)'
+    #out_frcmap = outfile.createVariable('frcmap', np.int16, ('lat', 'lon'))
+    #out_frcmap[:] = frcmap
+    #out_frcmap.units= 'Flux rope footprint connectivity label (unitless)'
     
     out_frhlcy = outfile.createVariable('frhlcy', np.double, ('lat', 'lon'))
     out_frhlcy[:] = frhlcy
@@ -249,11 +371,89 @@ for cfrm in frm_list:
 
     # Diagnostic readouts!
     time1 = datetime.now()
-    if dcount == 0
+    if dcount == 0:
         timedel = (time1 - time0)
     else:
         timedel = ((time1 - time0) + timedel) / 2
     timeeta = (nfrm - dcount) * timedel + time1
     print('Frame ' + '%05.f'%dcount + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
 
+    # Advance the timing index
+    dcount = dcount + 1
+
 # Output any completed time-series variables
+outfile = open(outdir + '/hist/h-fr-area.pkl', 'wb')
+pickle.dump(fr_area, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-fr-time.pkl', 'wb')
+pickle.dump(fr_time, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-fr-dur.pkl', 'wb')
+pickle.dump(fr_dur, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-fr-mhlcy.pkl', 'wb')
+pickle.dump(fr_mhlcy, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-fr-nhlcy.pkl', 'wb')
+pickle.dump(fr_nhlcy, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-fr-sflux.pkl', 'wb')
+pickle.dump(fr_sflux, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-fr-uflux.pkl', 'wb')
+pickle.dump(fr_uflux, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-fr-rext.pkl', 'wb')
+pickle.dump(fr_rext, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-fr-mrext.pkl', 'wb')
+pickle.dump(fr_mrext, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-fr-mlat.pkl', 'wb')
+pickle.dump(fr_mlat, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-fr-tarr.pkl', 'wb')
+pickle.dump(tarr, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-frh-area.pkl', 'wb')
+pickle.dump(frh_area, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-frh-time.pkl', 'wb')
+pickle.dump(frh_time, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-frh-mhlcy.pkl', 'wb')
+pickle.dump(frh_mhlcy, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-frh-nhlcy.pkl', 'wb')
+pickle.dump(frh_nhlcy, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-frh-sflux.pkl', 'wb')
+pickle.dump(frh_sflux, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-frh-uflux.pkl', 'wb')
+pickle.dump(frh_uflux, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-frh-rext.pkl', 'wb')
+pickle.dump(frh_rext, outfile)
+outfile.close()
+
+outfile = open(outdir + '/hist/h-frh-mrext.pkl', 'wb')
+pickle.dump(frh_mrext, outfile)
+outfile.close()
