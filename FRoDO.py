@@ -1,5 +1,5 @@
 # FRoDO.py
-# Flux Rope Detection and Observation
+# Flux Rope Detection and Organization
 
 # Import libraries
 import b_sim_netcdf
@@ -134,7 +134,7 @@ for cfrm in frm_list:
     br0 = f0b(frlon, frlat)
 
     # Trace a uniform set of fieldlines for detection
-    afl_r = np.zeros(frdim[0]*frdim[1])+1
+    afl_r = np.zeros(frdim[0]*frdim[1])+1.0
     afl_ph, afl_th = np.meshgrid(frlon, frlat)
     afl_th = np.ndarray.flatten(afl_th)
     afl_ph = np.ndarray.flatten(afl_ph)

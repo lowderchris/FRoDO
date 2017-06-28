@@ -1,5 +1,5 @@
 # FRoDO
-Flux Rope Detection and Observation
+Flux Rope Detection and Organization
 
 ## Goal
 The goal of this project is the consolidation of various routines I've developed into a single coherent algorithm for public use and development. With that in mind, there are a few specific goals:
