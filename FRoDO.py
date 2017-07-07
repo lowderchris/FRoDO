@@ -26,6 +26,7 @@ config = configparser.ConfigParser()
 config.read('config.cfg')
 
 datdir = config['paths']['datdir']
+datprefix = config['paths']['datprefix']
 outdir = config['paths']['outdir']
 
 sfrm = np.int(config['times']['sfrm'])
@@ -100,8 +101,8 @@ for cfrm in frm_list:
     csfrm = '%05.f'%cfrm
 
     # Read data into memory
-    b = b_sim_netcdf.SphB_sim(datdir + 'b_' + csfrm + '.nc', 128,128,128)
-    d = netcdf.netcdf_file(datdir + 'b_' + csfrm + '.nc', 'r')
+    b = b_sim_netcdf.SphB_sim(datdir + datprefix + csfrm + '.nc', 128,128,128)
+    d = netcdf.netcdf_file(datdir + datprefix + csfrm + '.nc', 'r')
 
     r = d.variables['r'][:].copy()
     th = d.variables['th'][:].copy()
@@ -339,7 +340,7 @@ for cfrm in frm_list:
     frhlcy0 = np.copy(frhlcy)
 
     # Output appropriate arrays to disk
-    outfile = netcdf.netcdf_file(outdir + 'fr_' + csfrm + '.nc', 'w')
+    outfile = netcdf.netcdf_file(outdir + 'fr-' + csfrm + '.nc', 'w')
     outfile.history = 'FRoDO flux rope data'
     outfile.createDimension('lat', frdim[0])
     outfile.createDimension('lon', frdim[1])
