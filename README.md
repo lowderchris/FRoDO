@@ -13,6 +13,8 @@ For the moment this code works with a sample dataset that will be provided. This
 
 At the moment this code works with a cadence of one day, though this will be modified and user adjustable in future releases.
 
+Python3 is supported for this code.
+
 ## Usage
 
 To begin the process of flux rope detection, load netCDF data into the specified input data directory . The filename prefix should be provided in the configuration file. Files should be labeled according to simulation day, padded with zeros to five digits. From here, tracking can be completed with:
@@ -26,6 +28,7 @@ To begin the process of tracking eruptive flux ropes:
     $ python3 FRoDO-erupt.py
 
 Note that the eruption detection code is still in the process of being ported over, and is not functional just yet...
+After processing has completed, erupting / non-erupting labels will be saved into the specified output directory, under the subdirectory 'hist'.
 
 ## To-do
 - [X] Create an initial README
