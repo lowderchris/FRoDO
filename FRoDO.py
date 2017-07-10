@@ -242,17 +242,18 @@ for cfrm in frm_list:
         # Label and iterate through flux rope footprint regions
         #for fr in np.arange(frlab.max())+1:
         for fr in np.unique(frlab):
-            frwhr = np.where(frlab == fr)
-            frarr = frmap0[frwhr]
-            hlcyarr0 = frhlcy0[frwhr]
-            hlcyarr1 = frhlcy[frwhr]
-            hlcycheck = (np.sign(hlcyarr0.mean()) * np.sign(hlcyarr1.mean())) == 1
-            frsts = scipy.stats.mode(frarr)
-            if (float(frsts[1][0]) / len(frarr) > 0.5) & (hlcycheck) & (frsts[0][0] != 0):
-                frnlab[frwhr] = frsts[0][0]
-            else:
-                frnlab[frwhr] = regmx + 1
-                regmx = regmx + 1
+            if fr != 0:
+                frwhr = np.where(frlab == fr)
+                frarr = frmap0[frwhr]
+                hlcyarr0 = frhlcy0[frwhr]
+                hlcyarr1 = frhlcy[frwhr]
+                hlcycheck = (np.sign(hlcyarr0.mean()) * np.sign(hlcyarr1.mean())) == 1
+                frsts = scipy.stats.mode(frarr)
+                if (float(frsts[1][0]) / len(frarr) > 0.5) & (hlcycheck) & (frsts[0][0] != 0):
+                    frnlab[frwhr] = frsts[0][0]
+                else:
+                    frnlab[frwhr] = regmx + 1
+                    regmx = regmx + 1
         if frnlab.max() != 0 : regmx = frnlab.max()
         frmap = np.copy(frnlab)
     else:
@@ -377,7 +378,7 @@ for cfrm in frm_list:
     else:
         timedel = ((time1 - time0) + timedel) / 2
     timeeta = (nfrm - dcount) * timedel + time1
-    print('Frame ' + '%05.f'%dcount + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
+    print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
 
     # Advance the timing index
     dcount = dcount + 1
