@@ -48,6 +48,10 @@ nfrm = len(frm_list)
 # Initialize arrays for storage
 tarr = []
 
+fr_elab = np.array([])
+fr_efpt = np.array([])
+fr_etarr = np.array([])
+
 phfl0 = np.zeros(frdim[0]*frdim[1],dtype=np.double)
 thfl0 = np.zeros(frdim[0]*frdim[1],dtype=np.double)
 rfl0 = np.zeros(frdim[0]*frdim[1],dtype=np.double)
@@ -62,6 +66,7 @@ for cfrm in frm_list:
     # Define some timing
     time0 = datetime.now()
     csfrm = '%05.f'%cfrm
+    csfrm1 = '%05.f'%(cfrm-1)
 
     # Read original data into memory
     b = b_sim_netcdf.SphB_sim(datdir + datprefix + csfrm + '.nc', 128,128,128)
@@ -85,7 +90,14 @@ for cfrm in frm_list:
     # Read processed data into memory
     d = netcdf.netcdf_file(outdir + 'fr-' + csfrm + '.nc', 'r')
     frhlcy = d.variables['frhlcy'][:,:].copy()
+    frmap = d.variables['frmap'][:,:].copy()
     d.close()
+
+    # Read the previous timeframe into memory for comparison
+    if dcount != 0:
+        d = netcdf.netcdf_file(outdir + 'fr-' + csfrm1 + '.nc', 'r')
+        frmap0 = d.variables['frmap'][:,:].copy()
+        d.close()
 
     # Define some coordinate information
     lons, lats = np.meshgrid(ph*360./(2*pi), th*360./(2*pi)-90.)
@@ -114,7 +126,7 @@ for cfrm in frm_list:
     hlcy, fl = b.fieldlines_hlcy(afl_r, afl_th, afl_ph)
 
     ## Generate an array of field-line helicity
-    hlcy_tb = np.zeros([len(frlat), len(frlon)], dtype='float64')
+    hlcy_tb = np.zeros([frdim[0], frdim[1]], dtype='float64')
     for fl_ind in np.arange(len(hlcy)):
         alfpr1 = fl[fl_ind][0][0]
         alfpr2 = fl[fl_ind][0][-1]
@@ -208,7 +220,7 @@ for cfrm in frm_list:
     # To find corresponding footpoint locations, simply invert the indicies and check for radius value
     # Create a linked map at 1R_sun to contain footprints of erupting flux ropes
 
-    regbb = np.zeros([len(frlat), len(frlon)], dtype=np.double)
+    regbb = np.zeros([frdim[0], frdim[1]], dtype=np.double)
     regc = 0
     for fl_ind in regfl0:
         alfpr1 = fl[fl_ind][0][0]
@@ -256,6 +268,46 @@ for cfrm in frm_list:
                 regbb[why2, whx2] = regls1[regc]
         regc = regc + 1
 
+    # Begin comparison with detected flux rope footprints 
+    # Compute arrays storing the locations of flux rope footprints
+    fpreg = array([])
+    fpwhr = list([])
+    if dcount == 0:
+        drot = diff_rot(1 * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
+        drot = drot - drot.max()
+        drot = np.array(np.around((drot/u.deg * 180/pi) * (frlon[1]-frlon[0]))).astype(np.int)
+        for fr in np.unique(frmap):
+            if fr != 0:
+                fpreg = np.append(fpreg,fr)
+                fpwhr.append(where(frmap == fr))
+    else:
+        for r in np.arange(frdim[0]):
+            frmap0[r,:] = np.roll(frmap0[r,:], drot[r])
+        for fr in np.unique(frmap0):
+            if fr != 0:
+                fpreg = np.append(fpreg,fr)
+                fpwhr.append(where(frmap == fr))
+
+    # Run through this set and compare for overlap
+    for fr in np.arange(regb.max())+1:
+        frwhr = np.where(regb == fr)
+        frwhrbb = np.where(regbb == fr)
+        fpmaxarea = 0.
+        fpmaxarea_reg = 0.
+        # Run through and compare overlap with full flux rope dataset
+        for ifpfr in np.arange(len(fpreg)):
+            xlap = np.in1d(fpwhr[ifpfr][1], frwhrbb[1])
+            ylap = np.in1d(fpwhr[ifpfr][0], frwhrbb[0])
+            plap = np.where(xlap & ylap)[0]
+            if (len(plap) != 0) & (len(np.where(np.in1d(fr_elab, int(fpreg[ifpfr])))[0]) == 0):
+                fr_elab = np.append(fr_elab, int(fpreg[ifpfr]))
+                fr_etarr = np.append(fr_etarr, cfrm)
+                if len(fpwhr[ifpfr][1]) > fpmaxarea:
+                    fpmaxarea = len(fpwhr[ifpfr][1])
+                    fpmaxarea_reg = int(fpreg[ifpfr])
+        if (fpmaxarea_reg != 0):
+            fr_efpt = np.append(fr_efpt, fpmaxarea_reg)
+
     # Diagnostic readouts!
     time1 = datetime.now()
     if dcount == 0:
@@ -263,7 +315,20 @@ for cfrm in frm_list:
     else:
         timedel = ((time1 - time0) + timedel) / 2
     timeeta = (nfrm - dcount) * timedel + time1
-    print('Frame ' + '%05.f'%dcount + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
+    print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
 
     # Advance the timing index
     dcount = dcount + 1
+
+# Save this data to file
+outfile = open(outdir + 'hist/fr_elab.pkl', 'wb')
+pickle.dump(fr_elab, outfile)
+outfile.close()
+
+outfile = open(outdir + 'hist/fr_efpt.pkl', 'wb')
+pickle.dump(fr_efpt, outfile)
+outfile.close()
+
+outfile = open(outdir + 'hist/fr_etarr.pkl', 'wb')
+pickle.dump(fr_etarr, outfile)
+outfile.close()

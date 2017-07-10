@@ -27,7 +27,6 @@ To begin the process of tracking eruptive flux ropes:
 
     $ python3 FRoDO-erupt.py
 
-Note that the eruption detection code is still in the process of being ported over, and is not functional just yet...
 After processing has completed, erupting / non-erupting labels will be saved into the specified output directory, under the subdirectory 'hist'.
 
 ## To-do
@@ -35,6 +34,6 @@ After processing has completed, erupting / non-erupting labels will be saved int
 - [ ] Create dataverse(?) repository for sample dataset
 - [X] Outline of overall algorithm structure
 - [ ] Break routines into modules
-- [ ] Complete merging of all routines
+- [X] Complete merging of all routines
 - [X] Read parameter configuration file
 - [ ] Modify for the use of differing time scales
