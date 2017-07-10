@@ -37,3 +37,4 @@ After processing has completed, erupting / non-erupting labels will be saved int
 - [X] Complete merging of all routines
 - [X] Read parameter configuration file
 - [ ] Modify for the use of differing time scales
+- [ ] Upload data visualization routines
