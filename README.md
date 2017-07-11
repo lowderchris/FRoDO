@@ -1,6 +1,8 @@
 # FRoDO
 Flux Rope Detection and Organization
 
+[![DOI](https://zenodo.org/badge/90994349.svg)](https://zenodo.org/badge/latestdoi/90994349)
+
 ## Goal
 The goal of this project is the consolidation of various routines I've developed into a single coherent algorithm for public use and development. With that in mind, there are a few specific goals:
 - Automated and consistent detection of magnetic flux rope structures
