@@ -25,11 +25,25 @@ To begin the process of flux rope detection, load netCDF data into the specified
 
 The resulting output files are saved to the specified output directory. Output files are marked by 'fr-#####.nc', and contain flux rope footprint locations, along with other associated data. Having stepped through all of the provided data, tracking is performed on detected flux rope footprints, with associated time histories stored in the subdirectory 'hist' of the specified output directory. These python Pickle files contain the lists of arrays storing the time history for each unique flux rope structure. The labeling provided in the array of footprints in the 'fr-#####.nc' corresponds to the element of these lists containing the associated history.
 
+Note that all large-helicity structures are tracked and stored here in this initial tracking. To filter out tall features that are not quite so flux-ropish, the array fr-rfrg is stored in the output history directory.
+
 To begin the process of tracking eruptive flux ropes:
 
     $ python3 FRoDO-erupt.py
 
-After processing has completed, erupting / non-erupting labels will be saved into the specified output directory, under the subdirectory 'hist'.
+After processing has completed, erupting / non-erupting labels will be saved into the specified output directory, under the subdirectory 'hist'. Note that these labels must be cross-referenced with the list of flux ropes contained within fr-rfrg from earlier.
+
+From here, the resulting time histories, eruption labels, and frame-by-frame detailed data can be recalled using the script FRoDO-read.py.
+
+    $ python3 FRoDO-read.py
+
+This will read in all of the aforementioned time histories, as well as eruption and radial extent/duration labels. This is mainly intended for diagnostic purposes, or to utilize as a branching off point for more customized visualizations.
+
+To run through a more standardized set of plotting routines,
+
+    $ python3 FRoDO-plot.py
+
+This will read output data, filter flux ropes accordingly, and create a standardized set of output plots for visualization. Feel free to use this as a starting point to further explore this data.
 
 ## To-do
 - [X] Create an initial README

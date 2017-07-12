@@ -377,11 +377,38 @@ for cfrm in frm_list:
         timedel = (time1 - time0)
     else:
         timedel = ((time1 - time0) + timedel) / 2
-    timeeta = (nfrm - dcount) * timedel + time1
+    timeeta = (nfrm - (dcount+1)) * timedel + time1
     print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
 
     # Advance the timing index
     dcount = dcount + 1
+
+# Create a filter to map those flux ropes that meet the radial extent criteria
+fr_hdrext = np.zeros(len(fr_dur), dtype=np.double)
+for fri in np.arange(1,len(fr_dur)):
+    fr_hdrext[fri] = len(np.where(frh_rext[fri] > 1.5)[0])
+fr_rfrg = np.where((fr_hdrext / fr_dur) < 0.5)[0]
+
+# Create a filter to remove flux ropes with only a single day of time history
+fr_dfrg = np.where((fr_dur != 1) & (np.isfinite(fr_dur)))[0]
+
+# Merge these into a single filtered index
+fr_frg = np.intersect1d(fr_rfrg, fr_dfrg)
+
+# Save this filtered list
+outfile = open(outdir + '/hist/fr-frg.pkl', 'wb')
+pickle.dump(fr_frg, outfile)
+outfile.close()
+
+# Convert from fieldline helicity to the net flux rope helicity
+hscl = ((6.957e10)**2) * 4. * np.pi * ((6.957e10)**2) / (frdim[0] * frdim[1])
+
+fr_nhlcy = fr_nhlcy * hscl
+fr_mhlcy = fr_mhlcy * hscl
+
+for i in np.arange(len(frh_nhlcy)):
+    frh_nhlcy[i] = frh_nhlcy[i] * hscl
+    frh_mhlcy[i] = frh_mhlcy[i] * hscl
 
 # Output any completed time-series variables
 outfile = open(outdir + '/hist/h-fr-area.pkl', 'wb')

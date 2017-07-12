@@ -195,8 +195,8 @@ for cfrm in frm_list:
         for rci in np.arange(len(wregb[0])):
             rlat = wregb[0][rci]
             rlon = wregb[1][rci]
-            fltb0 = where(rfl0 > 2.4)
-            fltb1 = where(rfl1 > 2.4)
+            fltb0 = np.where(rfl0 > 2.4)
+            fltb1 = np.where(rfl1 > 2.4)
 
             londff0 = abs(phfl0[fltb0] - frlon[rlon])
             latdff0 = abs(thfl0[fltb0] - (np.arcsin(-1*frlat[rlat])+(pi/2)))
@@ -205,17 +205,17 @@ for cfrm in frm_list:
             # Note that this 'distance' approximation computed here is only for comparison. A true distance calculation could be substituted here, when consolidating codes together.
             fldist0 = np.sqrt(londff0**2 + latdff0**2)
             fldist1 = np.sqrt(londff1**2 + latdff1**2)
-            wmd0 = where(fldist0 == np.min(fldist0))[0]
-            wmd1 = where(fldist1 == np.min(fldist1))[0]
+            wmd0 = np.where(fldist0 == np.min(fldist0))[0]
+            wmd1 = np.where(fldist1 == np.min(fldist1))[0]
             if ((londff0[wmd0] < frlon_wcell) & (latdff0[wmd0] < frlat_wcell)):
                 regls0 = np.append(regls0,r)
-                regfl0 = np.append(regfl0, where(phfl0 == phfl0[fltb0][wmd0])[0][0])
-                #regfl0 = np.append(regfl0, where(phfl0 == phfl0[fltb0][where(fldist0 == mindist0)])[0][0])
+                regfl0 = np.append(regfl0, np.where(phfl0 == phfl0[fltb0][wmd0])[0][0])
+                #regfl0 = np.append(regfl0, np.where(phfl0 == phfl0[fltb0][where(fldist0 == mindist0)])[0][0])
                 # Go ahead here and assign this value to the cell below? Will need to compute coordinates?
             if ((londff1[wmd1] < frlon_wcell) & (latdff1[wmd1] < frlat_wcell)):
                 regls1 = np.append(regls1,r)
-                regfl1 = np.append(regfl1, where(phfl1 == phfl1[fltb1][wmd1])[0][0])
-                #regfl1 = np.append(regfl1, where(phfl1 == phfl1[fltb1][where(fldist1 == mindist1)])[0][0])
+                regfl1 = np.append(regfl1, np.where(phfl1 == phfl1[fltb1][wmd1])[0][0])
+                #regfl1 = np.append(regfl1, np.where(phfl1 == phfl1[fltb1][where(fldist1 == mindist1)])[0][0])
 
     # To find corresponding footpoint locations, simply invert the indicies and check for radius value
     # Create a linked map at 1R_sun to contain footprints of erupting flux ropes
@@ -270,7 +270,7 @@ for cfrm in frm_list:
 
     # Begin comparison with detected flux rope footprints 
     # Compute arrays storing the locations of flux rope footprints
-    fpreg = array([])
+    fpreg = np.array([])
     fpwhr = list([])
     if dcount == 0:
         drot = diff_rot(1 * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
@@ -279,14 +279,14 @@ for cfrm in frm_list:
         for fr in np.unique(frmap):
             if fr != 0:
                 fpreg = np.append(fpreg,fr)
-                fpwhr.append(where(frmap == fr))
+                fpwhr.append(np.where(frmap == fr))
     else:
         for r in np.arange(frdim[0]):
             frmap0[r,:] = np.roll(frmap0[r,:], drot[r])
         for fr in np.unique(frmap0):
             if fr != 0:
                 fpreg = np.append(fpreg,fr)
-                fpwhr.append(where(frmap == fr))
+                fpwhr.append(np.where(frmap == fr))
 
     # Run through this set and compare for overlap
     for fr in np.arange(regb.max())+1:
@@ -314,21 +314,21 @@ for cfrm in frm_list:
         timedel = (time1 - time0)
     else:
         timedel = ((time1 - time0) + timedel) / 2
-    timeeta = (nfrm - dcount) * timedel + time1
+    timeeta = (nfrm - (dcount+1)) * timedel + time1
     print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
 
     # Advance the timing index
     dcount = dcount + 1
 
 # Save this data to file
-outfile = open(outdir + 'hist/fr_elab.pkl', 'wb')
+outfile = open(outdir + 'hist/fr-elab.pkl', 'wb')
 pickle.dump(fr_elab, outfile)
 outfile.close()
 
-outfile = open(outdir + 'hist/fr_efpt.pkl', 'wb')
+outfile = open(outdir + 'hist/fr-efpt.pkl', 'wb')
 pickle.dump(fr_efpt, outfile)
 outfile.close()
 
-outfile = open(outdir + 'hist/fr_etarr.pkl', 'wb')
+outfile = open(outdir + 'hist/fr-etarr.pkl', 'wb')
 pickle.dump(fr_etarr, outfile)
 outfile.close()

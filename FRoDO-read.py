@@ -94,6 +94,28 @@ infile = open(outdir + '/hist/h-frh-mrext.pkl', 'rb')
 frh_mrext = pickle.load(infile)
 infile.close()
 
+# Read eruption labels
+infile = open(outdir + '/hist/fr-efpt.pkl', 'rb')
+fr_efpt = pickle.load(infile)
+infile.close()
+fr_efpt = fr_efpt.astype(np.int)
+
+infile = open(outdir + '/hist/fr-elab.pkl', 'rb')
+fr_elab = pickle.load(infile)
+infile.close()
+fr_elab = fr_elab.astype(np.int)
+
+infile = open(outdir + '/hist/fr-etarr.pkl', 'rb')
+fr_etarr = pickle.load(infile)
+infile.close()
+fr_etarr = fr_etarr.astype(np.int)
+
+# Read radial extent labels
+infile = open(outdir + '/hist/fr-rfrg.pkl', 'rb')
+fr_rfrg = pickle.load(infile)
+infile.close()
+fr_rfrg = fr_rfrg.astype(np.int)
+
 # Read a particular frame for reference
 cfrm = 899
 csfrm = '%05.f'%cfrm
