@@ -25,7 +25,7 @@ To begin the process of flux rope detection, load netCDF data into the specified
 
 The resulting output files are saved to the specified output directory. Output files are marked by 'fr-#####.nc', and contain flux rope footprint locations, along with other associated data. Having stepped through all of the provided data, tracking is performed on detected flux rope footprints, with associated time histories stored in the subdirectory 'hist' of the specified output directory. These python Pickle files contain the lists of arrays storing the time history for each unique flux rope structure. The labeling provided in the array of footprints in the 'fr-#####.nc' corresponds to the element of these lists containing the associated history.
 
-Note that all large-helicity structures are tracked and stored here in this initial tracking. To filter out tall features that are not quite so flux-ropish, the array fr-rfrg is stored in the output history directory.
+Note that all large-helicity structures are tracked and stored here in this initial tracking. To filter out tall / brief features that are not quite so flux-ropish, the array fr-frg is stored in the output history directory.
 
 To begin the process of tracking eruptive flux ropes:
 
@@ -53,4 +53,5 @@ This will read output data, filter flux ropes accordingly, and create a standard
 - [X] Complete merging of all routines
 - [X] Read parameter configuration file
 - [ ] Modify for the use of differing time scales
-- [ ] Upload data visualization routines
+- [X] Upload data visualization routines
+- [ ] Add 3d plotting routines
