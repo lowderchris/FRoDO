@@ -12,7 +12,7 @@ The goal of this project is the consolidation of various routines I've developed
 
 ## Notes
 
-For the moment this code works with a sample dataset that will be provided. This will eventually expand to include user-provided datasets, conforming with certain requirements on domain, etc.
+For the moment this code works with a sample dataset that will be provided. This will eventually expand to include user-provided datasets, conforming with certain requirements on domain, etc. For the time being, please contact us for a sample dataset that we can provide on request.
 
 At the moment this code works with a cadence of one day, though this will be modified and user adjustable in future releases.
 
@@ -56,14 +56,19 @@ To run through a more standardized set of plotting routines,
 
 This will read output data, filter flux ropes accordingly, and create a standardized set of output plots for visualization. Feel free to use this as a starting point to further explore this data.
 
+To compute some statistics for the detected flux ropes,
+
+    $ python3 FRoDO-stats.py
+
+Mean values and associated standard deviations will be calculated and displayed, along with several t-tests and correlation coefficients.
+
 ## To-do
 
 - [X] Create an initial README
-- [ ] Create dataverse(?) repository for sample dataset
 - [X] Outline of overall algorithm structure
-- [ ] Break routines into modules
 - [X] Complete merging of all routines
 - [X] Read parameter configuration file
-- [ ] Modify for the use of differing time scales
 - [X] Upload data visualization routines
+- [X] Add script to compute statistics
+- [ ] Modify for the use of differing time scales
 - [ ] Add 3d plotting routines
