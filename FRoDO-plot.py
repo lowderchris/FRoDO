@@ -1,6 +1,11 @@
 # FRoDO-plot.py
 # Script to visualize detected flux rope data
 
+# Prepare a few things to plot off-screen
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.pyplot import *
+
 # Import libraries
 import os
 import numpy as np
@@ -23,11 +28,16 @@ import palettable
 cols = (palettable.colorbrewer.get_map('Paired', 'Qualitative', 12)).mpl_colors
 
 # Define some plotting parameters
-fscale = 1.0    # Relative figure scale
-fnapp = ''      # Label to append to plot filename
-defcol = 'k'    # Color
-legfsz = 8      # Legend font size
-gsize = 1e20    # Butterfly glyph scaling size
+fscale = 1.0            # Relative figure scale
+fnapp = ''              # Label to append to plot filename
+defcol = 'k'            # Default primary color
+defcol2 = cols[5]       # Default secondary color
+erptcol = '#ff7f0e'     # Erupting plotting color
+erptcmap = 'Oranges'    # Erupting color map
+nerptcol = '#1f77B4'    # Non-erupting plotting color
+nerptcmap = 'Blues'     # Non-erupting color map
+legfsz = 8              # Legend font size
+gsize = 1e20            # Butterfly glyph scaling size
 
 # Read parameters from a configuration file
 config = configparser.ConfigParser()
@@ -232,15 +242,15 @@ for i in fr_efpt:
 # Begin plotting
 
 # Radial graph of eruption mean latitudes
-fpmlatne = np.histogram(np.arcsin(fr_mlat[fr_nelab])*180./pi, bins=90, range=[-90,90], density=False)
-fpmlate = np.histogram(np.arcsin(fr_mlat[fr_elab])*180./pi, bins=90, range=[-90,90], density=False)
+fpmlatne = np.histogram(np.arcsin(fr_mlat[fr_nelab])*180./np.pi, bins=90, range=[-90,90], density=False)
+fpmlate = np.histogram(np.arcsin(fr_mlat[fr_elab])*180./np.pi, bins=90, range=[-90,90], density=False)
 whg = (180.) / len(fpmlatne[0])
 rscl = np.array([fpmlatne[0].max(), fpmlate[0].max()]).max() * 1.2
 
 f = figure(figsize=fscale*np.array([3.35,2.45]))
 ax, aax = setup_polaraxis(f, 111, rscl)
-aax.plot(fpmlatne[1][0:-1], fpmlatne[0], label='Non-erupting')
-aax.plot(fpmlate[1][0:-1], fpmlate[0], label='Erupting')
+aax.plot(fpmlatne[1][0:-1], fpmlatne[0], label='Non-erupting', color=nerptcol)
+aax.plot(fpmlate[1][0:-1], fpmlate[0], label='Erupting', color=erptcol)
 aax.legend(loc=(0.65,1.00))
 ax.grid()
 tight_layout()
@@ -254,8 +264,8 @@ gs = gridspec.GridSpec(2, 1,
                )
 ax2 = f.add_subplot(gs[0])
 ax1 = f.add_subplot(gs[1])
-sctne = ax1.scatter(netarr, np.arcsin(fr_mlat[fr_nelab])*180./pi, c=fr_nhlcy[fr_nelab], cmap='RdBu_r', s=fr_area[fr_nelab]/gsize,edgecolors='None',vmin=-0.5e43,vmax=0.5e43, alpha=1.0)
-scte = ax2.scatter(etarr, np.arcsin(fr_mlat[fr_elab])*180./pi, c=fr_nhlcy[fr_elab], cmap='RdBu_r', s=fr_area[fr_elab]/gsize,edgecolors='None',vmin=-0.5e43,vmax=0.5e43, alpha=1.0)
+sctne = ax1.scatter(netarr, np.arcsin(fr_mlat[fr_nelab])*180./np.pi, c=fr_nhlcy[fr_nelab], cmap='RdBu_r', s=fr_area[fr_nelab]/gsize,edgecolors='None',vmin=-0.5e43,vmax=0.5e43, alpha=1.0)
+scte = ax2.scatter(etarr, np.arcsin(fr_mlat[fr_elab])*180./np.pi, c=fr_nhlcy[fr_elab], cmap='RdBu_r', s=fr_area[fr_elab]/gsize,edgecolors='None',vmin=-0.5e43,vmax=0.5e43, alpha=1.0)
 cb = colorbar(sctne,ax=ax1, extend='both', label='Non-erupting H [Mx$^2$]', fraction=0.05)
 cb2 = colorbar(scte,ax=ax2, extend='both', label='Erupting H [Mx$^2$]', fraction=0.05)
 ax1.set_ylim([-90,90])
@@ -288,8 +298,8 @@ e_xs = np.linspace(0.1,2.8)
 e_ys = e_polyn(e_xs)
 
 f, (ax1,ax2) = subplots(2,1, figsize=fscale*np.array([3.35,5]))
-hb1 = ax1.hexbin(fr_dur[fr_nelab], abs(fr_nhlcy[fr_nelab]), xscale='log', yscale='log', gridsize=25, extent=[0,3,40,44], cmap='Blues', linewidths=0)
-hb2 = ax2.hexbin(fr_dur[fr_elab], abs(fr_nhlcy[fr_elab]), xscale='log', yscale='log', gridsize=25, extent=[0,3,40,44], cmap='Oranges', linewidths=0)
+hb1 = ax1.hexbin(fr_dur[fr_nelab], abs(fr_nhlcy[fr_nelab]), xscale='log', yscale='log', gridsize=25, extent=[0,3,40,44], cmap=nerptcmap, linewidths=0)
+hb2 = ax2.hexbin(fr_dur[fr_elab], abs(fr_nhlcy[fr_elab]), xscale='log', yscale='log', gridsize=25, extent=[0,3,40,44], cmap=erptcmap, linewidths=0)
 ax2.set_xlabel('Duration [days]')
 ax2.set_ylabel('$|$H$|$ [Mx$^2$]')
 ax1.plot(10**ne_xs, 10**ne_ys, color='0.5', linestyle='dashed', label='$10^{'+'%.01f'%ne_coef[1]+'} x^{'+'%.03f'%ne_coef[0]+'}$')
@@ -318,8 +328,8 @@ e_xs = np.linspace(0.1,2.8)
 e_ys = e_polyn(e_xs)
 
 f, (ax1,ax2) = subplots(2,1, figsize=fscale*np.array([3.35,5]))
-hb1 = ax1.hexbin(fr_dur[fr_nelab], fr_uflux[fr_nelab], xscale='log', yscale='log', gridsize=25, extent=[0,3,18,23], cmap='Blues', linewidths=0)
-hb2 = ax2.hexbin(fr_dur[fr_elab], fr_uflux[fr_elab], xscale='log', yscale='log', gridsize=25, extent=[0,3,18,23], cmap='Oranges', linewidths=0)
+hb1 = ax1.hexbin(fr_dur[fr_nelab], fr_uflux[fr_nelab], xscale='log', yscale='log', gridsize=25, extent=[0,3,18,23], cmap=nerptcmap, linewidths=0)
+hb2 = ax2.hexbin(fr_dur[fr_elab], fr_uflux[fr_elab], xscale='log', yscale='log', gridsize=25, extent=[0,3,18,23], cmap=erptcmap, linewidths=0)
 ax2.set_xlabel('Duration [days]')
 ax2.set_ylabel('$|\Phi_m|$ [Mx]')
 ax1.plot(10**ne_xs, 10**ne_ys, color='0.5', linestyle='dashed', label='$10^{'+'%.01f'%ne_coef[1]+  '} x^{'+'%.03f'%ne_coef[0]+'}$')
@@ -348,8 +358,8 @@ e_xs = np.linspace(18.1,22.8)
 e_ys = e_polyn(e_xs)
 
 f, (ax1, ax2) = subplots(2,1, figsize=fscale*np.array([3.35,5]))
-hb1=ax1.hexbin(fr_uflux[fr_nelab], abs(fr_nhlcy[fr_nelab]), xscale='log', yscale='log', gridsize=25, cmap='Blues', extent=[18,23,40,44], linewidths=0)
-hb2=ax2.hexbin(fr_uflux[fr_elab], abs(fr_nhlcy[fr_elab]), xscale='log', yscale='log', gridsize=25, cmap='Oranges', extent=[18,23,40,44], alpha=1.0, linewidths=0)
+hb1=ax1.hexbin(fr_uflux[fr_nelab], abs(fr_nhlcy[fr_nelab]), xscale='log', yscale='log', gridsize=25, cmap=nerptcmap, extent=[18,23,40,44], linewidths=0)
+hb2=ax2.hexbin(fr_uflux[fr_elab], abs(fr_nhlcy[fr_elab]), xscale='log', yscale='log', gridsize=25, cmap=erptcmap, extent=[18,23,40,44], alpha=1.0, linewidths=0)
 #ax1.grid()
 #ax2.grid()
 ax2.set_xlabel(r'$|\Phi_m|$ [Mx]')
@@ -370,14 +380,14 @@ f.savefig('plt/fr-sct-uflux-nhlcy'+fnapp+'.pdf')
 
 # Helicity and unsigned flux ejection rates
 f, (ax1, ax2) = subplots(2,1, figsize=fscale*np.array([3.35,5]))
-ax1.plot(tarr, ejr_uflux, label='1-day')
-ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(7)/7., mode='same'), label='7-day', color=defcol)
-#ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(27)/27., mode='same'), label='27-day', color=defcol)
-#ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(164)/164., mode='same'), label='6-month', color=cols[1])
-ax2.plot(tarr, ejr_nhlcy, label='1-day')
-ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(7)/7., mode='same'), label='7-day', color=defcol)
-#ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(27)/27., mode='same'), label='27-day', color=defcol)
-#ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(164)/164., mode='same'), label='6-month', color=cols[1])
+ax1.plot(tarr, ejr_uflux, label='1-day', color=defcol)
+ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(7)/7., mode='same'), label='7-day', color=defcol2)
+#ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(27)/27., mode='same'), label='27-day', color=defcol2)
+#ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(164)/164., mode='same'), label='6-month', color=defcol2)
+ax2.plot(tarr, ejr_nhlcy, label='1-day', color=defcol)
+ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(7)/7., mode='same'), label='7-day', color=defcol2)
+#ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(27)/27., mode='same'), label='27-day', color=defcol2)
+#ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(164)/164., mode='same'), label='6-month', color=defcol2)
 
 ax2.set_xlabel('Date')
 ax1.set_ylabel(r'$\Phi_m$ / day [Mx day$^{-1}$]')
