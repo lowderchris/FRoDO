@@ -3,6 +3,7 @@
 
 import pickle
 from scipy.io import netcdf
+import numpy as np
 
 import configparser
 
@@ -111,7 +112,7 @@ infile.close()
 fr_etarr = fr_etarr.astype(np.int)
 
 # Read radial extent labels
-infile = open(outdir + '/hist/fr-rfrg.pkl', 'rb')
+infile = open(outdir + '/hist/fr-frg.pkl', 'rb')
 fr_rfrg = pickle.load(infile)
 infile.close()
 fr_rfrg = fr_rfrg.astype(np.int)

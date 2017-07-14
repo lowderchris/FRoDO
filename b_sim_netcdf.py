@@ -32,7 +32,8 @@ class SphB_sim(sphb.SphB):
         dth = np.pi/nth
         dr = (self.ri[-1] - self.ri[0])/nr
         ph = np.linspace(0, 2*np.pi, nph)
-        th = np.linspace(self.thi[-1], self.thi[0], nth)
+        #th = np.linspace(self.thi[-1], self.thi[0], nth)
+        th = np.linspace(0, np.pi, nth)
         r = np.linspace(self.ri[0], self.ri[-1], nr) 
         r3, th3, ph3 = np.meshgrid(r,th,ph)
         r3 = np.swapaxes(r3,0,1)
@@ -56,9 +57,8 @@ class SphB_sim(sphb.SphB):
         self._variableToUnif_(self.bv)
 
         # Compute magnitude, needed for field line tracing:
-        #self.bbg = np.sqrt(self.brg**2 + r3**2.*self.bthg**2 
-        #                   + r3**2*np.sin(th3)**2*self.bphg**2)
         self.bbg = np.sqrt(self.brg**2 + self.bthg**2 + self.bphg**2)
+        self.bbg[self.bbg < 1e-12] = 1e-12
         self.jjg = np.sqrt(self.jrg**2 + self.jthg**2 + self.jphg**2)     
 
     def readB(self, fileName):
@@ -107,13 +107,13 @@ class SphB_sim(sphb.SphB):
         # Interpolation indices in each direction:
         fr = interp1d(self.ri,np.arange(np.size(self.ri)))
         fth = interp1d(self.thi[::-1],(np.arange(np.size(self.thi)))[::-1], \
-                       bounds_error=False, fill_value=0.)
+                       bounds_error=False, fill_value=len(self.thi)+10)
         fph = interp1d(self.phi,np.arange(np.size(self.phi)))
-        
+       
         jr0 = fr(self.r)
         jth0 = fth(self.th)
         jph0 = fph(self.ph)
-        
+      
         jr, jth, jph = np.meshgrid(jr0,jth0,jph0)
         jr = np.swapaxes(jr,0,1)
         jth = np.swapaxes(jth,0,1)

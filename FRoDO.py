@@ -63,7 +63,8 @@ br0 = np.zeros(frdim, dtype=np.double)
 tarr = []
 
 # Define a pixel area array (note the use of a sine latitude grid here)
-area_arr = (6.955e10)**2 * 4. * pi / (frdim[0] * frdim[1])
+rsun = 6.957e10
+pix_area = 4. * np.pi * rsun**2 / (frdim[0] * frdim[1])
 
 # Define arrays for the storage of flux rope time histories
 fr_area = np.array([np.nan])
@@ -264,46 +265,46 @@ for cfrm in frm_list:
         # Output location information
         frwhr = np.where(frmap == frcur)
         if len(fr_area) <= frcur:
-            fr_area = np.append(fr_area, len(frwhr[0]) * area_arr)
+            fr_area = np.append(fr_area, len(frwhr[0]) * pix_area)
             fr_time = np.append(fr_time, dcount)
             fr_mlat = np.append(fr_mlat, np.mean(frlat[frwhr[0]]))
             fr_dur = np.append(fr_dur, 1)
-            fr_mhlcy = np.append(fr_mhlcy, frhlcy[frwhr].mean())
-            fr_nhlcy = np.append(fr_nhlcy, frhlcy[frwhr].sum())
-            fr_sflux = np.append(fr_sflux, (br0[frwhr] * area_arr).sum())
-            fr_uflux = np.append(fr_uflux, abs(br0[frwhr] * area_arr).sum())
+            fr_mhlcy = np.append(fr_mhlcy, (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean())
+            fr_nhlcy = np.append(fr_nhlcy, (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum())
+            fr_sflux = np.append(fr_sflux, (br0[frwhr] * pix_area).sum())
+            fr_uflux = np.append(fr_uflux, abs(br0[frwhr] * pix_area).sum())
             fr_rext = np.append(fr_rext, frrext[frwhr].mean())
             fr_mrext = np.append(fr_mrext, frrext[frwhr].max())
 
-            frh_area.append(np.array([len(frwhr[0]) * area_arr]))
+            frh_area.append(np.array([len(frwhr[0]) * pix_area]))
             frh_time.append(np.array([dcount]))
-            frh_mhlcy.append(np.array([frhlcy[frwhr].mean()]))
-            frh_nhlcy.append(np.array([frhlcy[frwhr].sum()]))
-            frh_sflux.append(np.array([(br0[frwhr] * area_arr).sum()]))
-            frh_uflux.append(np.array([abs(br0[frwhr] * area_arr).sum()]))
+            frh_mhlcy.append(np.array([(hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean()]))
+            frh_nhlcy.append(np.array([(hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum()]))
+            frh_sflux.append(np.array([(br0[frwhr] * pix_area).sum()]))
+            frh_uflux.append(np.array([abs(br0[frwhr] * pix_area).sum()]))
             frh_rext.append(np.array([frrext[frwhr].mean()]))
             frh_mrext.append(np.array([frrext[frwhr].max()]))
         else:
-            cflux = abs(br0[frwhr] * area_arr).sum()
+            cflux = abs(br0[frwhr] * pix_area).sum()
             fr_dur[frcur] = fr_dur[frcur] + 1
 
-            frh_area[frcur] = np.append(frh_area[frcur], len(frwhr[0]) * area_arr)
+            frh_area[frcur] = np.append(frh_area[frcur], len(frwhr[0]) * pix_area)
             frh_time[frcur] = np.append(frh_time[frcur], dcount)
-            frh_mhlcy[frcur] = np.append(frh_mhlcy[frcur], frhlcy[frwhr].mean())
-            frh_nhlcy[frcur] = np.append(frh_nhlcy[frcur], frhlcy[frwhr].sum())
-            frh_sflux[frcur] = np.append(frh_sflux[frcur], (br0[frwhr] * area_arr).sum())
-            frh_uflux[frcur] = np.append(frh_uflux[frcur], abs(br0[frwhr] * area_arr).sum())
+            frh_mhlcy[frcur] = np.append(frh_mhlcy[frcur], (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean())
+            frh_nhlcy[frcur] = np.append(frh_nhlcy[frcur], (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum())
+            frh_sflux[frcur] = np.append(frh_sflux[frcur], (br0[frwhr] * pix_area).sum())
+            frh_uflux[frcur] = np.append(frh_uflux[frcur], abs(br0[frwhr] * pix_area).sum())
             frh_rext[frcur] = np.append(frh_rext[frcur], frrext[frwhr].mean())
             frh_mrext[frcur] = np.append(frh_mrext[frcur], frrext[frwhr].max())
 
             if fr_uflux[frcur] < cflux:
-                fr_area[frcur] = len(frwhr[0]) * area_arr
+                fr_area[frcur] = len(frwhr[0]) * pix_area
                 fr_time[frcur] = dcount
                 fr_mlat[frcur] = np.mean(frlat[frwhr[0]])
-                fr_mhlcy[frcur] = frhlcy[frwhr].mean()
-                fr_nhlcy[frcur] = frhlcy[frwhr].sum()
-                fr_sflux[frcur] = (br0[frwhr] * area_arr).sum()
-                fr_uflux[frcur] = abs(br0[frwhr] * area_arr).sum()
+                fr_mhlcy[frcur] = (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean()
+                fr_nhlcy[frcur] = (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum()
+                fr_sflux[frcur] = (br0[frwhr] * pix_area).sum()
+                fr_uflux[frcur] = abs(br0[frwhr] * pix_area).sum()
                 fr_rext[frcur] = frrext[frwhr].mean()
                 fr_mrext[frcur] = frrext[frwhr].max()
 
@@ -399,16 +400,6 @@ fr_frg = np.intersect1d(fr_rfrg, fr_dfrg)
 outfile = open(outdir + '/hist/fr-frg.pkl', 'wb')
 pickle.dump(fr_frg, outfile)
 outfile.close()
-
-# Convert from fieldline helicity to the net flux rope helicity
-hscl = ((6.957e10)**2) * 4. * np.pi * ((6.957e10)**2) / (frdim[0] * frdim[1])
-
-fr_nhlcy = fr_nhlcy * hscl
-fr_mhlcy = fr_mhlcy * hscl
-
-for i in np.arange(len(frh_nhlcy)):
-    frh_nhlcy[i] = frh_nhlcy[i] * hscl
-    frh_mhlcy[i] = frh_mhlcy[i] * hscl
 
 # Output any completed time-series variables
 outfile = open(outdir + '/hist/h-fr-area.pkl', 'wb')
