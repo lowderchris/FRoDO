@@ -5,7 +5,7 @@ Flux Rope Detection and Organization
 
 ## Goal
 
-The goal of this project is the consolidation of various routines I've developed into a single coherent algorithm for public use and development. With that in mind, there are a few specific goals:
+The FRoDO code has a few specific goals in mind:
 - Automated and consistent detection of magnetic flux rope structures
 - Operation independent of dataset, such that the end user only needs to provide datacubes of magnetic field components and associated grids
 - Tracking of detected flux ropes in time, outputting locations and associated statistics
@@ -30,7 +30,7 @@ A few astronomy-specific libraries prove useful:
 
 ## Usage
 
-To begin the process of flux rope detection, load netCDF data into the specified input data directory . The filename prefix should be provided in the configuration file. Files should be labeled according to simulation day, padded with zeros to five digits. From here, tracking can be completed with:
+To begin the process of flux rope detection, load netCDF data into the specified input data directory. The filename prefix should be provided in the configuration file. Files should be labeled according to simulation day, padded with zeros to five digits. From here, tracking can be completed with:
 
     $ python3 FRoDO.py
 
@@ -72,3 +72,4 @@ Mean values and associated standard deviations will be calculated and displayed,
 - [X] Add script to compute statistics
 - [ ] Modify for the use of differing time scales
 - [ ] Add 3d plotting routines
+- [ ] Compute and store A through a data-prep routine
