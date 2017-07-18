@@ -145,21 +145,15 @@ print('T-test for duration:', scipy.stats.ttest_ind(fr_dur[fr_elab], fr_dur[fr_n
 
 # Duration and unsigned net helicity
 print('Spearman rank-order calculation for non-erupting duration and unsigned net helicity:',scipy.stats.spearmanr(fr_dur[fr_nelab], abs(fr_nhlcy[fr_nelab])))
-print('Pearson correlation coefficient for non-erupting duration and unsigned net helicity:', scipy.stats.pearsonr(fr_dur[fr_nelab], abs(fr_nhlcy[fr_nelab])))
 
 print('Spearman rank-order calculation for erupting duration and unsigned net helicity:',scipy.stats.spearmanr(fr_dur[fr_elab], abs(fr_nhlcy[fr_elab])))
-print('Pearson correlation coefficient for erupting duration and unsigned net helicity:', scipy.stats.pearsonr(fr_dur[fr_elab], abs(fr_nhlcy[fr_elab])))
 
 # Duration and unsigned magnetic flux
 print('Spearman rank-order calculation for non-erupting duration and unsigned magnetic flux:',scipy.stats.spearmanr(fr_dur[fr_nelab], fr_uflux[fr_nelab]))
-print('Pearson correlation coefficient for non-erupting duration and unsigned magnetic flux:', scipy.stats.pearsonr(fr_dur[fr_nelab], fr_uflux[fr_nelab]))
 
 print('Spearman rank-order calculation for erupting duration and unsigned magnetic flux:',scipy.stats.spearmanr(fr_dur[fr_elab], fr_uflux[fr_elab]))
-print('Pearson correlation coefficient for erupting duration and unsigned magnetic flux:', scipy.stats.pearsonr(fr_dur[fr_elab], fr_uflux[fr_elab]))
 
 # Unsigned magnetic flux and unsigned net helicity
 print('Spearman rank-order calculation for non-erupting unsigned magnetic flux  and unsigned net helicity:',scipy.stats.spearmanr(fr_uflux[fr_nelab], abs(fr_nhlcy[fr_nelab])))
-print('Pearson correlation coefficient for non-erupting unsigned magnetic flux and unsigned net helicity:', scipy.stats.pearsonr(fr_uflux[fr_nelab], abs(fr_nhlcy[fr_nelab])))
 
 print('Spearman rank-order calculation for erupting unsigned magnetic flux  and unsigned net helicity:',scipy.stats.spearmanr(fr_uflux[fr_elab], abs(fr_nhlcy[fr_elab])))
-print('Pearson correlation coefficient for erupting unsigned magnetic flux and unsigned net helicity:', scipy.stats.pearsonr(fr_uflux[fr_elab], abs(fr_nhlcy[fr_elab])))
