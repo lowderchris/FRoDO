@@ -159,8 +159,6 @@ for cfrm in frm_list:
 
     # Sort out regions with a reasonable overlap of horizontal magnetic field and helicity
     regb = scipy.ndimage.label(bht > ebthresh)[0]
-    reghp = scipy.ndimage.label(hlcy_tb > ehthresh)[0]
-    reghn = scipy.ndimage.label(hlcy_tb < -ehthresh)[0]
 
     # Filter out small regions
     for r in np.arange(regb.max())+1:
