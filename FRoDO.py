@@ -6,7 +6,6 @@ import b_sim_netcdf
 import os
 import glob
 from datetime import datetime
-#import cPickle as pickle
 import pickle
 
 import numpy as np
