@@ -1,9 +1,11 @@
 # FRoDO-read.py
 # Script to read processed data from FRoDO
 
+# Import libraries
 import pickle
-from scipy.io import netcdf
+
 import numpy as np
+from scipy.io import netcdf
 
 import configparser
 

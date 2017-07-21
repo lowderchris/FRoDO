@@ -2,11 +2,11 @@
 # Script to calculate a few statistics on the resulting flux rope data
 
 # Import libraries
+import pickle
 
+import numpy as np
 import scipy
 from scipy import stats
-import numpy as np
-import pickle
 
 import configparser
 

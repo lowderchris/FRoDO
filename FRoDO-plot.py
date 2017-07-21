@@ -8,9 +8,10 @@ from matplotlib.pyplot import *
 
 # Import libraries
 import os
+import pickle
+
 import numpy as np
 import scipy
-import pickle
 from scipy.io import netcdf
 
 from matplotlib import gridspec
