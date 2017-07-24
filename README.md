@@ -30,7 +30,11 @@ A few astronomy-specific libraries prove useful:
 
 ## Usage
 
-To begin the process of flux rope detection, load netCDF data into the specified input data directory. The filename prefix should be provided in the configuration file. Files should be labeled according to simulation day, padded with zeros to five digits. From here, tracking can be completed with:
+To begin the process of flux rope detection, load magnetic field netCDF data into the specified input data directory. The filename prefix should be provided in the configuration file. Files should be labeled according to simulation day, padded with zeros to five digits. The magnetic vector potential can then be computed for the given sample dataset using:
+
+    $ python3 FRoDO-prep.py
+
+This will create a series of additional netCDF files to store the magnetic vector potential. From here, tracking can be completed with:
 
     $ python3 FRoDO.py
 
@@ -72,4 +76,4 @@ Mean values and associated standard deviations will be calculated and displayed,
 - [X] Add script to compute statistics
 - [ ] Modify for the use of differing time scales
 - [ ] Add 3d plotting routines
-- [ ] Compute and store A through a data-prep routine
+- [X] Compute and store A through a data-prep routine
