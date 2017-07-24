@@ -15,7 +15,8 @@ config = configparser.ConfigParser()
 config.read('config.cfg')
 
 datdir = config['paths']['datdir']
-datprefix = config['paths']['datprefix']
+bdatprefix = config['paths']['bdatprefix']
+adatprefix = config['paths']['adatprefix']
 outdir = config['paths']['outdir']
 
 # Read data

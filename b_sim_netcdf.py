@@ -19,13 +19,13 @@ class SphB_sim(sphb.SphB):
     modified 15/9/14 --ary
     """
 
-    def __init__(self, fileName, nr, nth, nph):
+    def __init__(self, fileName, AfileName, nr, nth, nph):
         """Class constructor.
         The size of the uniform grid is given by nr, nth, nph.
         """
 
         # Read in magnetic field from netcdf file:
-        self.bv, self.ri, self.thi, self.phi = self.readB(fileName)
+        self.bv, self.ri, self.thi, self.phi = self.readB(fileName, AfileName)
 
         # Create uniform spherical grid:
         dph = 2*np.pi/nph
@@ -61,7 +61,7 @@ class SphB_sim(sphb.SphB):
         self.bbg[self.bbg < 1e-12] = 1e-12
         self.jjg = np.sqrt(self.jrg**2 + self.jthg**2 + self.jphg**2)     
 
-    def readB(self, fileName):
+    def readB(self, fileName, AfileName):
         """Read magnetic field and grid from file "bv[snap].dat"
         ---
         modified 15/9/14 --ary
@@ -77,6 +77,12 @@ class SphB_sim(sphb.SphB):
         jr = fh.variables['jr'][:]
         jth = fh.variables['jth'][:]
         jph = fh.variables['jph'][:]
+        ar = fh.variables['ar'][:]
+        ath = fh.variables['ath'][:]
+        aph = fh.variables['aph'][:]
+        fh.close()
+
+        fh = netcdf.netcdf_file(AfileName, 'r', mmap=False)
         ar = fh.variables['ar'][:]
         ath = fh.variables['ath'][:]
         aph = fh.variables['aph'][:]

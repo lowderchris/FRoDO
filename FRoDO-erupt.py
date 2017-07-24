@@ -26,7 +26,8 @@ config = configparser.ConfigParser()
 config.read('config.cfg')
 
 datdir = config['paths']['datdir']
-datprefix = config['paths']['datprefix']
+bdatprefix = config['paths']['bdatprefix']
+adatprefix = config['paths']['adatprefix']
 outdir = config['paths']['outdir']
 
 sfrm = np.int(config['times']['sfrm'])
@@ -68,8 +69,8 @@ for cfrm in frm_list:
     csfrm1 = '%05.f'%(cfrm-1)
 
     # Read original data into memory
-    b = b_sim_netcdf.SphB_sim(datdir + datprefix + csfrm + '.nc', 128,128,128)
-    d = netcdf.netcdf_file(datdir + datprefix + csfrm + '.nc', 'r')
+    b = b_sim_netcdf.SphB_sim(datdir + bdatprefix + csfrm + '.nc', datdir + adatprefix + csfrm + '.nc', 128,128,128)
+    d = netcdf.netcdf_file(datdir + bdatprefix + csfrm + '.nc', 'r')
 
     r = d.variables['r'][:].copy()
     th = d.variables['th'][:].copy()
