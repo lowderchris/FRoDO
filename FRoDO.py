@@ -109,9 +109,6 @@ for cfrm in frm_list:
     th = d.variables['th'][:].copy()
     ph = d.variables['ph'][:].copy()
 
-    ar = d.variables['ar'][:,:,:].copy()
-    ath = d.variables['ath'][:,:,:].copy()
-    aph = d.variables['aph'][:,:,:].copy()
     br = d.variables['br'][:,:,:].copy()
     bth = d.variables['bth'][:,:,:].copy()
     bph = d.variables['bph'][:,:,:].copy()
