@@ -14,21 +14,9 @@ import configparser
 config = configparser.ConfigParser()
 config.read('config.cfg')
 
-datdir = config['paths']['datdir']
-bdatprefix = config['paths']['bdatprefix']
-adatprefix = config['paths']['adatprefix']
-outdir = config['paths']['outdir']
-
 sfrm = np.int(config['times']['sfrm'])
 efrm = np.int(config['times']['efrm'])
 dfrm = np.int(config['times']['dfrm'])
-
-frdim = np.array([np.int(config['array']['nlat']), np.int(config['array']['nlon'])])
-
-ref_sthresh = np.double(config['thresholds']['ref_sthresh'])
-ref_ethresh = np.double(config['thresholds']['ref_ethresh'])
-ref_bavg = np.double(config['thresholds']['ref_bavg'])
-ref_havg = np.double(config['thresholds']['ref_havg'])
 
 # Generate a list of files to search through
 frm_list = np.arange(sfrm,efrm+1,step=dfrm)
