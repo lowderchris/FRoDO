@@ -34,6 +34,7 @@ efrm = np.int(config['times']['efrm'])
 dfrm = np.int(config['times']['dfrm'])
 
 frdim = np.array([np.int(config['array']['nlat']), np.int(config['array']['nlon'])])
+maxlat = np.double(config['array']['maxlat'])
 
 ref_sthresh = np.double(config['thresholds']['ref_sthresh'])
 ref_ethresh = np.double(config['thresholds']['ref_ethresh'])
@@ -65,6 +66,7 @@ tarr = []
 # Define a pixel area array (note the use of a sine latitude grid here)
 rsun = 6.957e10
 pix_area = 4. * np.pi * rsun**2 / (frdim[0] * frdim[1])
+pix_area_pol = 4. * np.pi * rsun**2 / (frdim[0] * frdim[1])
 
 # Define arrays for the storage of flux rope time histories
 fr_area = np.array([np.nan])
@@ -134,7 +136,8 @@ for cfrm in frm_list:
     # Define some coordinate information
     lons, lats = np.meshgrid(ph*360./(2*pi), th*360./(2*pi)-90.)
     frlon = np.linspace((2*pi/(2*frdim[1])), (2*pi)-(2*pi/(2*frdim[1])), num=frdim[1], dtype=np.double)
-    frlat = np.linspace(-1+(1/(2*frdim[0])), 1-(1/(2*frdim[0])), num=frdim[0], dtype=np.double)
+    frlat = np.linspace(-np.sin(maxlat*np.pi/180.)+(1/(2*frdim[0])), np.sin(maxlat*np.pi/180.)-(1/(2*frdim[0])), num=frdim[0], dtype=np.double)
+    frlat_pol = np.linspace(-1+(1/(2*frdim[0])), 1-(1/(2*frdim[0])), num=frdim[0], dtype=np.double)
 
     frlat_edge = frlat - abs(frlat[0] - frlat[1])/2.
     frlon_edge = frlon - abs(frlon[0] - frlon[1])/2.
@@ -142,6 +145,7 @@ for cfrm in frm_list:
     # Interpolate the magnetic field array to the output grid
     f0b = scipy.interpolate.interp2d(lons[0,:]*2*pi/360, np.sin(lats[:,0]*2*pi/360), np.rot90(br[:,:,0]), kind='cubic')
     br0 = f0b(frlon, frlat)
+    br0_pol = f0b(frlon, frlat_pol)
 
     # Trace a uniform set of fieldlines for detection
     afl_r = np.zeros(frdim[0]*frdim[1])+1.0
@@ -374,6 +378,10 @@ for cfrm in frm_list:
     out_br0 = outfile.createVariable('br0', np.double, ('lat', 'lon'))
     out_br0[:] = br0
     out_br0.units = 'Radial magnetic flux density at 1.0 R_sun (G)'
+
+    out_br0_pol = outfile.createVariable('br0_pol', np.double, ('lat', 'lon'))
+    out_br0_pol[:] = br0_pol
+    out_br0_pol.units = 'Radial magnetic flux density at 1.0 R_sun (G)'
     
     out_lat = outfile.createVariable('lat', np.float32, ('lat',))
     out_lat[:] = frlat
