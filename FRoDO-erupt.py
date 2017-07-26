@@ -35,6 +35,7 @@ efrm = np.int(config['times']['efrm'])
 dfrm = np.int(config['times']['dfrm'])
 
 frdim = np.array([np.int(config['array']['nlat']), np.int(config['array']['nlon'])])
+maxlat = np.double(config['array']['maxlat'])
 
 ref_sthresh = np.double(config['thresholds']['ref_sthresh'])
 ref_ethresh = np.double(config['thresholds']['ref_ethresh'])
@@ -102,7 +103,8 @@ for cfrm in frm_list:
     # Define some coordinate information
     lons, lats = np.meshgrid(ph*360./(2*pi), th*360./(2*pi)-90.)
     frlon = np.linspace((2*pi/(2*frdim[1])), (2*pi)-(2*pi/(2*frdim[1])), num=frdim[1], dtype=np.double)
-    frlat = np.linspace(-1+(1/(2*frdim[0])), 1-(1/(2*frdim[0])), num=frdim[0], dtype=np.double)
+    frlat = np.linspace(-np.sin(maxlat*np.pi/180.)+(1/(2*frdim[0])), np.sin(maxlat*np.pi/180.)-(1/(2*frdim[0])), num=frdim[0], dtype=np.double)
+    frlat_pol = np.linspace(-1+(1/(2*frdim[0])), 1-(1/(2*frdim[0])), num=frdim[0], dtype=np.double)
 
     frlat_wcell = abs(frlat[0] - frlat[1])
     frlon_wcell = abs(frlon[0] - frlon[1])
@@ -114,6 +116,7 @@ for cfrm in frm_list:
     bh_intarr = np.rot90((bth[:,:,-1]**2 + bph[:,:,-1]**2)**(0.5))
     f0bh = scipy.interpolate.interp2d(lons[0,:]*2*pi/360, np.sin(lats[:,0]*2*pi/360), bh_intarr, kind='cubic')
     bht = f0bh(frlon, frlat)
+    bht_pol = f0bh(frlon, frlat_pol)
 
     # Trace a set of fieldlines down from the simulation upper boundary
     afl_r = np.zeros(frdim[0]*frdim[1])+2.5
