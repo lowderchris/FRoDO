@@ -65,7 +65,7 @@ tarr = []
 
 # Define a pixel area array (note the use of a sine latitude grid here)
 rsun = 6.957e10
-pix_area = 4. * np.pi * rsun**2 / (frdim[0] * frdim[1])
+pix_area = 2. * np.pi * rsun**2 * (np.cos((90-maxlat)*np.pi/180.) - np.cos((90+maxlat)*np.pi/180.)) / (frdim[0] * frdim[1])
 pix_area_pol = 4. * np.pi * rsun**2 / (frdim[0] * frdim[1])
 
 # Define arrays for the storage of flux rope time histories
@@ -370,7 +370,7 @@ for cfrm in frm_list:
     
     out_frrext = outfile.createVariable('frrext', np.double, ('lat', 'lon'))
     out_frrext[:]  = frrext
-    out_frrext.units = 'FIeld line maximum radial extent (R_sun)'
+    out_frrext.units = 'Field line maximum radial extent (R_sun)'
     
     out_br0 = outfile.createVariable('br0', np.double, ('lat', 'lon'))
     out_br0[:] = br0
