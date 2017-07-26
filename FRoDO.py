@@ -278,8 +278,8 @@ for cfrm in frm_list:
             fr_time = np.append(fr_time, dcount)
             fr_mlat = np.append(fr_mlat, np.mean(frlat[frwhr[0]]))
             fr_dur = np.append(fr_dur, 1)
-            fr_mhlcy = np.append(fr_mhlcy, (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean())
-            fr_nhlcy = np.append(fr_nhlcy, (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum())
+            fr_mhlcy = np.append(fr_mhlcy, (frhlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean())
+            fr_nhlcy = np.append(fr_nhlcy, (frhlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum())
             fr_sflux = np.append(fr_sflux, (br0[frwhr] * pix_area).sum())
             fr_uflux = np.append(fr_uflux, abs(br0[frwhr] * pix_area).sum())
             fr_rext = np.append(fr_rext, frrext[frwhr].mean())
@@ -287,8 +287,8 @@ for cfrm in frm_list:
 
             frh_area.append(np.array([len(frwhr[0]) * pix_area]))
             frh_time.append(np.array([dcount]))
-            frh_mhlcy.append(np.array([(hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean()]))
-            frh_nhlcy.append(np.array([(hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum()]))
+            frh_mhlcy.append(np.array([(frhlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean()]))
+            frh_nhlcy.append(np.array([(frhlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum()]))
             frh_sflux.append(np.array([(br0[frwhr] * pix_area).sum()]))
             frh_uflux.append(np.array([abs(br0[frwhr] * pix_area).sum()]))
             frh_rext.append(np.array([frrext[frwhr].mean()]))
@@ -299,8 +299,8 @@ for cfrm in frm_list:
 
             frh_area[frcur] = np.append(frh_area[frcur], len(frwhr[0]) * pix_area)
             frh_time[frcur] = np.append(frh_time[frcur], dcount)
-            frh_mhlcy[frcur] = np.append(frh_mhlcy[frcur], (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean())
-            frh_nhlcy[frcur] = np.append(frh_nhlcy[frcur], (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum())
+            frh_mhlcy[frcur] = np.append(frh_mhlcy[frcur], (frhlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean())
+            frh_nhlcy[frcur] = np.append(frh_nhlcy[frcur], (frhlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum())
             frh_sflux[frcur] = np.append(frh_sflux[frcur], (br0[frwhr] * pix_area).sum())
             frh_uflux[frcur] = np.append(frh_uflux[frcur], abs(br0[frwhr] * pix_area).sum())
             frh_rext[frcur] = np.append(frh_rext[frcur], frrext[frwhr].mean())
@@ -310,8 +310,8 @@ for cfrm in frm_list:
                 fr_area[frcur] = len(frwhr[0]) * pix_area
                 fr_time[frcur] = dcount
                 fr_mlat[frcur] = np.mean(frlat[frwhr[0]])
-                fr_mhlcy[frcur] = (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean()
-                fr_nhlcy[frcur] = (hlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum()
+                fr_mhlcy[frcur] = (frhlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean()
+                fr_nhlcy[frcur] = (frhlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum()
                 fr_sflux[frcur] = (br0[frwhr] * pix_area).sum()
                 fr_uflux[frcur] = abs(br0[frwhr] * pix_area).sum()
                 fr_rext[frcur] = frrext[frwhr].mean()
