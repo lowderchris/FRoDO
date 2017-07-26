@@ -76,5 +76,5 @@ Mean values and associated standard deviations will be calculated and displayed,
 - [X] Add script to compute statistics
 - [ ] Modify for the use of differing time scales
 - [ ] Add 3d plotting routines
-- [ ] Allow for user-configurable maximum latitude
+- [X] Allow for user-configurable maximum latitude
 - [X] Compute and store A through a data-prep routine
