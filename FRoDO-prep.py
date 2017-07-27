@@ -3,28 +3,22 @@
 # In particular, the vector magnetic potential is computed in the DeVore gauge
 
 # Import libraries
+import os
+import glob
+
 import numpy as np
 from scipy.io import netcdf
 
 import compA
 
-import configparser
-
-# Read parameters from a configuration file
-config = configparser.ConfigParser()
-config.read('config.cfg')
-
-sfrm = np.int(config['times']['sfrm'])
-efrm = np.int(config['times']['efrm'])
-dfrm = np.int(config['times']['dfrm'])
-
 # Generate a list of files to search through
-frm_list = np.arange(sfrm,efrm+1,step=dfrm)
-nfrm = len(frm_list)
+files = glob.glob('./dat/*.nc')
+files.sort()
 
 # Cycle through input data
-dcount = 0
-for cfrm in frm_list:
+for file in files:
 
     # Compute and store magnetic vector potential
-    compA.compa(cfrm)
+    # Note that for now, for this naming scheme, just extract the timing string:
+    # This will be fixed in future for more general data usage
+    compA.compa(file[-11:-3])
