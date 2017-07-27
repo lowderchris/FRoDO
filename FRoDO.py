@@ -5,7 +5,7 @@
 import b_sim_netcdf
 import os
 import glob
-from datetime import datetime
+import datetime
 import pickle
 
 import numpy as np
@@ -100,7 +100,7 @@ dcount = 0
 for cfrm in frm_list:
 
     # Define some timing
-    time0 = datetime.now()
+    time0 = datetime.datetime.now()
     csfrm = '%05.f'%cfrm
 
     # Read magnetic field data into memory
@@ -115,7 +115,7 @@ for cfrm in frm_list:
     bth = d.variables['bth'][:,:,:].copy()
     bph = d.variables['bph'][:,:,:].copy()
     cdate = d.date
-    ctarr = datetime.strptime(bytes.decode(cdate),"%Y%b%d_%H%M")
+    ctarr = datetime.datetime.strptime(bytes.decode(cdate),"%Y%b%d_%H%M")
     cjuld = np.double(sunpy.time.julian_day(ctarr))
     tarr.append(ctarr)
 
@@ -238,9 +238,12 @@ for cfrm in frm_list:
 
     # Compute a pixel shift amount to account for differential rotation
     if dcount == 0:
-        drot = diff_rot(1 * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
-        drot = drot - drot.max()
-        drot = np.array(np.around((drot/u.deg * 180/pi) * (frlon[1]-frlon[0]))).astype(np.int)
+        dtime = 1
+    else:
+        dtime = (tarr[dcount] - tarr[dcount - 1]).days
+    drot = diff_rot(dtime * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
+    drot = drot - drot.max()
+    drot = np.array(np.around((drot/u.deg * 180/pi) * (frlon[1]-frlon[0]))).astype(np.int)
 
     frnlab = np.zeros(frdim, dtype=np.int16)
     # Compare flux rope maps with prior times to label histories
@@ -277,7 +280,7 @@ for cfrm in frm_list:
             fr_area = np.append(fr_area, len(frwhr[0]) * pix_area)
             fr_time = np.append(fr_time, dcount)
             fr_mlat = np.append(fr_mlat, np.mean(frlat[frwhr[0]]))
-            fr_dur = np.append(fr_dur, 1)
+            fr_dur = np.append(fr_dur, dtime)
             fr_mhlcy = np.append(fr_mhlcy, (frhlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).mean())
             fr_nhlcy = np.append(fr_nhlcy, (frhlcy[frwhr] * np.abs(br0[frwhr]) * rsun**2 * pix_area).sum())
             fr_sflux = np.append(fr_sflux, (br0[frwhr] * pix_area).sum())
@@ -295,7 +298,7 @@ for cfrm in frm_list:
             frh_mrext.append(np.array([frrext[frwhr].max()]))
         else:
             cflux = abs(br0[frwhr] * pix_area).sum()
-            fr_dur[frcur] = fr_dur[frcur] + 1
+            fr_dur[frcur] = fr_dur[frcur] + dtime
 
             frh_area[frcur] = np.append(frh_area[frcur], len(frwhr[0]) * pix_area)
             frh_time[frcur] = np.append(frh_time[frcur], dcount)
@@ -386,7 +389,7 @@ for cfrm in frm_list:
     out_lon[:] = frlon
 
     # Diagnostic readouts!
-    time1 = datetime.now()
+    time1 = datetime.datetime.now()
     if dcount == 0:
         timedel = (time1 - time0)
     else:
@@ -398,13 +401,16 @@ for cfrm in frm_list:
     dcount = dcount + 1
 
 # Create a filter to map those flux ropes that meet the radial extent criteria
+dtarr = tarr - np.roll(tarr,1)
+dtarr[0] = datetime.timedelta(1)
+for i in np.arange(len(dtarr)): dtarr[i] = dtarr[i].days
 fr_hdrext = np.zeros(len(fr_dur), dtype=np.double)
 for fri in np.arange(1,len(fr_dur)):
-    fr_hdrext[fri] = len(np.where(frh_rext[fri] > 1.5)[0])
+    fr_hdrext[fri] = dtarr[(np.where(frh_rext[fri] > 1.5)[0])].sum()
 fr_rfrg = np.where((fr_hdrext / fr_dur) < 0.5)[0]
 
-# Create a filter to remove flux ropes with only a single day of time history
-fr_dfrg = np.where((fr_dur != 1) & (np.isfinite(fr_dur)))[0]
+# Create a filter to remove flux ropes with less than a single day of time history
+fr_dfrg = np.where((fr_dur > 1) & (np.isfinite(fr_dur)))[0]
 
 # Merge these into a single filtered index
 fr_frg = np.intersect1d(fr_rfrg, fr_dfrg)

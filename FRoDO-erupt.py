@@ -6,7 +6,7 @@
 import b_sim_netcdf
 import os
 import glob
-from datetime import datetime
+import datetime
 import pickle
 
 import numpy as np
@@ -65,7 +65,7 @@ dcount = 0
 for cfrm in frm_list:
 
     # Define some timing
-    time0 = datetime.now()
+    time0 = datetime.datetime.now()
     csfrm = '%05.f'%cfrm
     csfrm1 = '%05.f'%(cfrm-1)
 
@@ -81,7 +81,7 @@ for cfrm in frm_list:
     bth = d.variables['bth'][:,:,:].copy()
     bph = d.variables['bph'][:,:,:].copy()
     cdate = d.date
-    ctarr = datetime.strptime(bytes.decode(cdate),"%Y%b%d_%H%M")
+    ctarr = datetime.datetime.strptime(bytes.decode(cdate),"%Y%b%d_%H%M")
     cjuld = np.double(sunpy.time.julian_day(ctarr))
     tarr.append(ctarr)
 
@@ -269,14 +269,20 @@ for cfrm in frm_list:
                 regbb[why2, whx2] = regls1[regc]
         regc = regc + 1
 
+    # Compute a pixel shift amount to account for differential rotation
+    if dcount == 0:
+        dtime = 1
+    else:
+        dtime = (tarr[dcount] - tarr[dcount - 1]).days
+    drot = diff_rot(dtime * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
+    drot = drot - drot.max()
+    drot = np.array(np.around((drot/u.deg * 180/pi) * (frlon[1]-frlon[0]))).astype(np.int)
+
     # Begin comparison with detected flux rope footprints 
     # Compute arrays storing the locations of flux rope footprints
     fpreg = np.array([])
     fpwhr = list([])
     if dcount == 0:
-        drot = diff_rot(1 * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
-        drot = drot - drot.max()
-        drot = np.array(np.around((drot/u.deg * 180/pi) * (frlon[1]-frlon[0]))).astype(np.int)
         for fr in np.unique(frmap):
             if fr != 0:
                 fpreg = np.append(fpreg,fr)
@@ -310,7 +316,7 @@ for cfrm in frm_list:
             fr_efpt = np.append(fr_efpt, fpmaxarea_reg)
 
     # Diagnostic readouts!
-    time1 = datetime.now()
+    time1 = datetime.datetime.now()
     if dcount == 0:
         timedel = (time1 - time0)
     else:
