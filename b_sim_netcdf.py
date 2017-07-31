@@ -77,9 +77,6 @@ class SphB_sim(sphb.SphB):
         jr = fh.variables['jr'][:]
         jth = fh.variables['jth'][:]
         jph = fh.variables['jph'][:]
-        ar = fh.variables['ar'][:]
-        ath = fh.variables['ath'][:]
-        aph = fh.variables['aph'][:]
         fh.close()
 
         fh = netcdf.netcdf_file(AfileName, 'r', mmap=False)

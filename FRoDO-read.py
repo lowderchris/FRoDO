@@ -16,10 +16,6 @@ config.read('config.cfg')
 datdir = config['paths']['datdir']
 outdir = config['paths']['outdir']
 
-sfrm = np.int(config['times']['sfrm'])
-efrm = np.int(config['times']['efrm'])
-dfrm = np.int(config['times']['dfrm'])
-
 # Read time histories
 infile = open(outdir + '/hist/h-fr-area.pkl', 'rb')
 fr_area = pickle.load(infile)
@@ -120,8 +116,7 @@ infile.close()
 fr_rfrg = fr_rfrg.astype(np.int)
 
 # Read a particular frame for reference
-cfrm = 899
-csfrm = '%05.f'%cfrm
+csfrm = '00120_00'
 
 infile = netcdf.netcdf_file(outdir + 'fr-' + csfrm + '.nc', 'r')
 frmap = infile.variables['frmap'][:,:].copy()

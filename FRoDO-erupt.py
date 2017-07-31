@@ -6,7 +6,7 @@
 import b_sim_netcdf
 import os
 import glob
-from datetime import datetime
+import datetime
 import pickle
 
 import numpy as np
@@ -30,10 +30,6 @@ bdatprefix = config['paths']['bdatprefix']
 adatprefix = config['paths']['adatprefix']
 outdir = config['paths']['outdir']
 
-sfrm = np.int(config['times']['sfrm'])
-efrm = np.int(config['times']['efrm'])
-dfrm = np.int(config['times']['dfrm'])
-
 frdim = np.array([np.int(config['array']['nlat']), np.int(config['array']['nlon'])])
 maxlat = np.double(config['array']['maxlat'])
 
@@ -43,8 +39,11 @@ ref_bavg = np.double(config['thresholds']['ref_bavg'])
 ref_havg = np.double(config['thresholds']['ref_havg'])
 
 # Generate a list of files to search through
-frm_list = np.arange(sfrm,efrm+1,step=dfrm)
-nfrm = len(frm_list)
+bfrm_list = glob.glob(datdir + bdatprefix + '*.nc')
+bfrm_list.sort()
+afrm_list = glob.glob(datdir + adatprefix + '*.nc')
+afrm_list.sort()
+nfrm = len(bfrm_list)
 
 # Initialize arrays for storage
 tarr = []
@@ -62,12 +61,11 @@ rfl1 = np.zeros(frdim[0]*frdim[1],dtype=np.double)
 
 # Begin cycling through these frames
 dcount = 0
-for cfrm in frm_list:
+for cfrm in bfrm_list:
 
     # Define some timing
-    time0 = datetime.now()
-    csfrm = '%05.f'%cfrm
-    csfrm1 = '%05.f'%(cfrm-1)
+    time0 = datetime.datetime.now()
+    csfrm = cfrm[-11:-3]
 
     # Read original data into memory
     b = b_sim_netcdf.SphB_sim(datdir + bdatprefix + csfrm + '.nc', datdir + adatprefix + csfrm + '.nc', 128,128,128)
@@ -81,7 +79,7 @@ for cfrm in frm_list:
     bth = d.variables['bth'][:,:,:].copy()
     bph = d.variables['bph'][:,:,:].copy()
     cdate = d.date
-    ctarr = datetime.strptime(bytes.decode(cdate),"%Y%b%d_%H%M")
+    ctarr = datetime.datetime.strptime(bytes.decode(cdate),"%Y%b%d_%H%M")
     cjuld = np.double(sunpy.time.julian_day(ctarr))
     tarr.append(ctarr)
 
@@ -269,14 +267,21 @@ for cfrm in frm_list:
                 regbb[why2, whx2] = regls1[regc]
         regc = regc + 1
 
+    # Compute a pixel shift amount to account for differential rotation
+    if dcount == 0:
+        dtime = 1
+    else:
+        dtime0 = tarr[dcount] - tarr[dcount - 1]
+        dtime = dtime0.days + (dtime0.seconds / 86400.)
+    drot = diff_rot(dtime * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
+    drot = drot - drot.max()
+    drot = np.array(np.around((drot/u.deg * 180/pi) * (frlon[1]-frlon[0]))).astype(np.int)
+
     # Begin comparison with detected flux rope footprints 
     # Compute arrays storing the locations of flux rope footprints
     fpreg = np.array([])
     fpwhr = list([])
     if dcount == 0:
-        drot = diff_rot(1 * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
-        drot = drot - drot.max()
-        drot = np.array(np.around((drot/u.deg * 180/pi) * (frlon[1]-frlon[0]))).astype(np.int)
         for fr in np.unique(frmap):
             if fr != 0:
                 fpreg = np.append(fpreg,fr)
@@ -302,7 +307,7 @@ for cfrm in frm_list:
             plap = np.where(xlap & ylap)[0]
             if (len(plap) != 0) & (len(np.where(np.in1d(fr_elab, int(fpreg[ifpfr])))[0]) == 0):
                 fr_elab = np.append(fr_elab, int(fpreg[ifpfr]))
-                fr_etarr = np.append(fr_etarr, cfrm)
+                fr_etarr = np.append(fr_etarr, csfrm)
                 if len(fpwhr[ifpfr][1]) > fpmaxarea:
                     fpmaxarea = len(fpwhr[ifpfr][1])
                     fpmaxarea_reg = int(fpreg[ifpfr])
@@ -310,13 +315,16 @@ for cfrm in frm_list:
             fr_efpt = np.append(fr_efpt, fpmaxarea_reg)
 
     # Diagnostic readouts!
-    time1 = datetime.now()
+    time1 = datetime.datetime.now()
     if dcount == 0:
         timedel = (time1 - time0)
     else:
         timedel = ((time1 - time0) + timedel) / 2
     timeeta = (nfrm - (dcount+1)) * timedel + time1
     print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
+
+    # Save the current timestamp
+    csfrm1 = csfrm
 
     # Advance the timing index
     dcount = dcount + 1
