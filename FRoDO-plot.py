@@ -395,11 +395,11 @@ f.savefig('plt/fr-sct-uflux-nhlcy'+fnapp+'.pdf')
 # Helicity and unsigned flux ejection rates
 f, (ax1, ax2) = subplots(2,1, figsize=fscale*np.array([3.35,5]))
 ax1.plot(tarr, ejr_uflux, label='1-day', color=defcol)
-ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(7)/7., mode='same'), label='7-day', color=defcol2)
+#ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(3)/3., mode='same'), label='7-day', color=defcol2)
 #ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(27)/27., mode='same'), label='27-day', color=defcol2)
 #ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(164)/164., mode='same'), label='6-month', color=defcol2)
 ax2.plot(tarr, ejr_nhlcy, label='1-day', color=defcol)
-ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(7)/7., mode='same'), label='7-day', color=defcol2)
+#ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(3)/3., mode='same'), label='7-day', color=defcol2)
 #ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(27)/27., mode='same'), label='27-day', color=defcol2)
 #ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(164)/164., mode='same'), label='6-month', color=defcol2)
 
