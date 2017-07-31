@@ -30,10 +30,6 @@ bdatprefix = config['paths']['bdatprefix']
 adatprefix = config['paths']['adatprefix']
 outdir = config['paths']['outdir']
 
-sfrm = np.int(config['times']['sfrm'])
-efrm = np.int(config['times']['efrm'])
-dfrm = np.int(config['times']['dfrm'])
-
 frdim = np.array([np.int(config['array']['nlat']), np.int(config['array']['nlon'])])
 maxlat = np.double(config['array']['maxlat'])
 
@@ -43,8 +39,11 @@ ref_bavg = np.double(config['thresholds']['ref_bavg'])
 ref_havg = np.double(config['thresholds']['ref_havg'])
 
 # Generate a list of files to search through
-frm_list = np.arange(sfrm,efrm+1,step=dfrm)
-nfrm = len(frm_list)
+bfrm_list = glob.glob(datdir + bdatprefix + '*.nc')
+bfrm_list.sort()
+afrm_list = glob.glob(datdir + adatprefix + '*.nc')
+afrm_list.sort()
+nfrm = len(bfrm_list)
 
 # Initialize arrays for storage
 tarr = []
@@ -62,12 +61,11 @@ rfl1 = np.zeros(frdim[0]*frdim[1],dtype=np.double)
 
 # Begin cycling through these frames
 dcount = 0
-for cfrm in frm_list:
+for cfrm in bfrm_list:
 
     # Define some timing
     time0 = datetime.datetime.now()
-    csfrm = '%05.f'%cfrm
-    csfrm1 = '%05.f'%(cfrm-1)
+    csfrm = cfrm[-11:-3]
 
     # Read original data into memory
     b = b_sim_netcdf.SphB_sim(datdir + bdatprefix + csfrm + '.nc', datdir + adatprefix + csfrm + '.nc', 128,128,128)
@@ -273,7 +271,8 @@ for cfrm in frm_list:
     if dcount == 0:
         dtime = 1
     else:
-        dtime = (tarr[dcount] - tarr[dcount - 1]).days
+        dtime0 = tarr[dcount] - tarr[dcount - 1]
+        dtime = dtime0.days + (dtime0.seconds / 86400.)
     drot = diff_rot(dtime * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
     drot = drot - drot.max()
     drot = np.array(np.around((drot/u.deg * 180/pi) * (frlon[1]-frlon[0]))).astype(np.int)
@@ -308,7 +307,7 @@ for cfrm in frm_list:
             plap = np.where(xlap & ylap)[0]
             if (len(plap) != 0) & (len(np.where(np.in1d(fr_elab, int(fpreg[ifpfr])))[0]) == 0):
                 fr_elab = np.append(fr_elab, int(fpreg[ifpfr]))
-                fr_etarr = np.append(fr_etarr, cfrm)
+                fr_etarr = np.append(fr_etarr, csfrm)
                 if len(fpwhr[ifpfr][1]) > fpmaxarea:
                     fpmaxarea = len(fpwhr[ifpfr][1])
                     fpmaxarea_reg = int(fpreg[ifpfr])
@@ -323,6 +322,9 @@ for cfrm in frm_list:
         timedel = ((time1 - time0) + timedel) / 2
     timeeta = (nfrm - (dcount+1)) * timedel + time1
     print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
+
+    # Save the current timestamp
+    csfrm1 = csfrm
 
     # Advance the timing index
     dcount = dcount + 1

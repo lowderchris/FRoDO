@@ -29,10 +29,6 @@ bdatprefix = config['paths']['bdatprefix']
 adatprefix = config['paths']['adatprefix']
 outdir = config['paths']['outdir']
 
-sfrm = np.int(config['times']['sfrm'])
-efrm = np.int(config['times']['efrm'])
-dfrm = np.int(config['times']['dfrm'])
-
 frdim = np.array([np.int(config['array']['nlat']), np.int(config['array']['nlon'])])
 maxlat = np.double(config['array']['maxlat'])
 
@@ -49,9 +45,12 @@ os.system("mkdir " + outdir + 'hist/')
 os.system("rm " + outdir + "*")
 os.system("rm " + outdir + "hist/*")
 
-# Work through all of the nasty date calculations
-frm_list = np.arange(sfrm,efrm+1,step=dfrm)
-nfrm = len(frm_list)
+# Generate a list of files to search through
+bfrm_list = glob.glob(datdir + bdatprefix + '*.nc')
+bfrm_list.sort()
+afrm_list = glob.glob(datdir + adatprefix + '*.nc')
+afrm_list.sort()
+nfrm = len(bfrm_list)
 
 # Define arrays to store surface maps
 frmap = np.zeros(frdim, dtype=np.int16)
@@ -97,11 +96,11 @@ ethreshs = np.zeros(nfrm, dtype=np.double)
 dcount = 0
 
 # Begin cycling through time frames
-for cfrm in frm_list:
+for cfrm in bfrm_list:
 
     # Define some timing
     time0 = datetime.datetime.now()
-    csfrm = '%05.f'%cfrm
+    csfrm = cfrm[-11:-3]
 
     # Read magnetic field data into memory
     b = b_sim_netcdf.SphB_sim(datdir + bdatprefix + csfrm + '.nc', datdir + adatprefix + csfrm + '.nc', 128,128,128)
@@ -240,7 +239,8 @@ for cfrm in frm_list:
     if dcount == 0:
         dtime = 1
     else:
-        dtime = (tarr[dcount] - tarr[dcount - 1]).days
+        dtime0 = tarr[dcount] - tarr[dcount - 1]
+        dtime = dtime0.days + (dtime0.seconds / 86400.)
     drot = diff_rot(dtime * u.day, np.arcsin(frlat)*180/pi * u.deg, rot_type='snodgrass')
     drot = drot - drot.max()
     drot = np.array(np.around((drot/u.deg * 180/pi) * (frlon[1]-frlon[0]))).astype(np.int)

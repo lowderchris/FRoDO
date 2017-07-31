@@ -78,7 +78,6 @@ fr_elab = fr_elab.astype(np.int)
 infile = open(outdir + '/hist/fr-etarr.pkl', 'rb')
 fr_etarr = pickle.load(infile)
 infile.close()
-fr_etarr = fr_etarr.astype(np.int)
 
 # Read radial extent and duration filtered index
 infile = open(outdir + '/hist/fr-frg.pkl', 'rb')
