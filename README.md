@@ -65,16 +65,3 @@ To compute some statistics for the detected flux ropes,
     $ python3 FRoDO-stats.py
 
 Mean values and associated standard deviations will be calculated and displayed, along with several t-tests and correlation coefficients.
-
-## To-do
-
-- [X] Create an initial README
-- [X] Outline of overall algorithm structure
-- [X] Complete merging of all routines
-- [X] Read parameter configuration file
-- [X] Upload data visualization routines
-- [X] Add script to compute statistics
-- [X] Modify for the use of differing time scales
-- [ ] Add 3d plotting routines
-- [X] Allow for user-configurable maximum latitude
-- [X] Compute and store A through a data-prep routine
