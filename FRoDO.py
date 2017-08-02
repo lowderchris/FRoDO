@@ -2,11 +2,24 @@
 # Flux Rope Detection and Organization
 
 # Import libraries
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.pyplot import *
+
+from matplotlib import gridspec
+from matplotlib.transforms import Affine2D
+from matplotlib.projections import PolarAxes
+from mpl_toolkits.axisartist import angle_helper
+from mpl_toolkits.axisartist.grid_finder import MaxNLocator
+from mpl_toolkits.axisartist.floating_axes import GridHelperCurveLinear, FloatingSubplot
+import mpl_toolkits.axisartist.floating_axes as floating_axes
+
 import b_sim_netcdf
 import os
 import glob
 import datetime
 import pickle
+import pandas as pd
 
 import numpy as np
 from numpy import pi
@@ -824,19 +837,6 @@ def erupt():
 
 def plot():
 
-    # Prepare a few things to plot off-screen
-    import matplotlib
-    matplotlib.use('Agg')
-    from matplotlib.pyplot import *
-
-    from matplotlib import gridspec
-    from matplotlib.transforms import Affine2D
-    from matplotlib.projections import PolarAxes
-    from mpl_toolkits.axisartist import angle_helper
-    from mpl_toolkits.axisartist.grid_finder import MaxNLocator
-    from mpl_toolkits.axisartist.floating_axes import GridHelperCurveLinear, FloatingSubplot
-    import mpl_toolkits.axisartist.floating_axes as floating_axes
-
     # Define color tables
     import palettable
     cols = (palettable.colorbrewer.get_map('Paired', 'Qualitative', 12)).mpl_colors
@@ -1407,3 +1407,9 @@ def read(csfrm):
     infile.close()
 
     return frmap
+
+if __name__ == "__main__":
+    FRoDO()
+    erupt()
+    plot()
+    stats()
