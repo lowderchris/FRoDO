@@ -8,11 +8,13 @@ from matplotlib.pyplot import *
 
 # Import libraries
 import os
+import glob
 import pickle
 
 import numpy as np
 import scipy
 from scipy.io import netcdf
+import pandas as pd
 
 from matplotlib import gridspec
 from matplotlib.transforms import Affine2D
@@ -46,6 +48,8 @@ config.read('config.cfg')
 
 datdir = config['paths']['datdir']
 outdir = config['paths']['outdir']
+
+frdim = np.array([np.int(config['array']['nlat']), np.int(config['array']['nlon'])])
 
 # Create output directories if needed
 os.system("mkdir " + 'plt')
@@ -228,12 +232,41 @@ for i in np.arange(len(nearr)):
 for i in np.arange(len(earr)):
     etarr.append(tarr[earr[i]])
 
+
 # Compute the flux and helicity ejection rates
+tarr = np.array(tarr)
 ejr_uflux = np.zeros(len(tarr), dtype=np.double)
 ejr_nhlcy = np.zeros(len(tarr), dtype=np.double)
 for i in fr_efpt:
     ejr_uflux[fr_time[i].astype(np.int)] = ejr_uflux[fr_time[i].astype(np.int)] + fr_uflux[i]
     ejr_nhlcy[fr_time[i].astype(np.int)] = ejr_nhlcy[fr_time[i].astype(np.int)] + abs(fr_nhlcy[i])
+
+dtarr = pd.to_datetime(np.array(pd.date_range(tarr[0].date(), tarr[-1].date(), freq='1D')))
+dejr_uflux = np.zeros(len(dtarr), dtype=np.double)
+dejr_nhlcy = np.zeros(len(dtarr), dtype=np.double)
+for i in np.arange(len(dtarr)):
+    if i != len(dtarr)-1:
+       dejr_uflux[i] = ejr_uflux[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum() 
+       dejr_nhlcy[i] = ejr_nhlcy[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum() 
+    else:
+       dejr_uflux[i] = ejr_uflux[tarr >= dtarr[i]].sum() 
+       dejr_nhlcy[i] = ejr_nhlcy[tarr >= dtarr[i]].sum() 
+
+# Generate a persistence array for flux ropes
+ofiles = glob.glob(outdir + 'fr-*.nc')
+ofiles.sort()
+fr_pmap = np.zeros(frdim, dtype=np.double)
+fcount = 0
+for file in ofiles:
+    if fcount != 0:
+        dtime0 = tarr[fcount] - tarr[fcount - 1]
+        dtime = dtime0.days + (dtime0.seconds / 86400.)
+    else:
+        dtime = 1.
+    infile = netcdf.netcdf_file(file, 'r')
+    fr_pmap = fr_pmap + (infile.variables['frmap'][:,:] != 0) * dtime
+    infile.close()
+    fcount = fcount + 1
 
 # Begin plotting
 
@@ -394,22 +427,27 @@ f.savefig('plt/fr-sct-uflux-nhlcy'+fnapp+'.pdf')
 
 # Helicity and unsigned flux ejection rates
 f, (ax1, ax2) = subplots(2,1, figsize=fscale*np.array([3.35,5]))
-ax1.plot(tarr, ejr_uflux, label='1-day', color=defcol)
-#ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(3)/3., mode='same'), label='7-day', color=defcol2)
-#ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(27)/27., mode='same'), label='27-day', color=defcol2)
-#ax1.plot(tarr, scipy.convolve(ejr_uflux, np.ones(164)/164., mode='same'), label='6-month', color=defcol2)
-ax2.plot(tarr, ejr_nhlcy, label='1-day', color=defcol)
-#ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(3)/3., mode='same'), label='7-day', color=defcol2)
-#ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(27)/27., mode='same'), label='27-day', color=defcol2)
-#ax2.plot(tarr, scipy.convolve(ejr_nhlcy, np.ones(164)/164., mode='same'), label='6-month', color=defcol2)
+ax1.plot(tarr, ejr_uflux, label='Original', color=defcol)
+ax1.plot(dtarr, scipy.convolve(dejr_uflux, np.ones(7)/7., mode='same'), label='7-day', color=defcol2)
+ax2.plot(tarr, ejr_nhlcy, label='Original', color=defcol)
+ax2.plot(dtarr, scipy.convolve(dejr_nhlcy, np.ones(7)/7., mode='same'), label='7-day', color=defcol2)
 
 ax2.set_xlabel('Date')
-ax1.set_ylabel(r'$\Phi_m$ / day [Mx day$^{-1}$]')
-ax2.set_ylabel(r'H / day [Mx$^2$ day$^{-1}$]')
+ax1.set_ylabel(r'$\Phi_m$ [Mx]')
+ax2.set_ylabel(r'H [Mx$^2$]')
 ax1.xaxis.set_ticklabels([])
-ax1.legend()
 for label in ax2.xaxis.get_ticklabels()[::2]:
         label.set_visible(False)
+ax1.legend()
 f.autofmt_xdate() # Optional toggle to sort out overlapping dates
 tight_layout()
 savefig('plt/fr_ejr'+fnapp+'.pdf')
+
+# Flux rope persistence map
+f, (ax) = subplots(1, figsize=fscale*np.array([3.35,2.0]))
+im = ax.imshow(fr_pmap, extent=[0,360,-1,1], cmap='Greys')
+colorbar(im, label='Flux rope persistence [days]')
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Sine latitude')
+tight_layout()
+savefig('plt/fr_pmap'+fnapp+'.pdf')
