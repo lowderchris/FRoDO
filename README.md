@@ -58,13 +58,7 @@ To begin the process of tracking eruptive flux ropes:
 
 After processing has completed, erupting / non-erupting labels will be saved into the specified output directory, under the subdirectory 'hist'. Note that these labels must be cross-referenced with the list of flux ropes contained within fr-rfrg from earlier.
 
-From here, the resulting time histories, eruption labels, and frame-by-frame detailed data can be recalled using the script FRoDO-read.py.
-
-    $ python3 FRoDO-read.py
-
-This will read in all of the aforementioned time histories, as well as eruption and radial extent/duration labels. This is mainly intended for diagnostic purposes, or to utilize as a branching off point for more customized visualizations.
-
-To run through a more standardized set of plotting routines,
+To run through a standardized set of plotting routines,
 
     >>> FRoDO.plot()
 
