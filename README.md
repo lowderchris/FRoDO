@@ -30,21 +30,31 @@ A few astronomy-specific libraries prove useful:
 
 ## Usage
 
-To begin the process of flux rope detection, load magnetic field netCDF data into the specified input data directory. The filename prefix should be provided in the configuration file. Files should be labeled according to simulation day, padded with zeros to five digits. The magnetic vector potential can then be computed for the given sample dataset using:
+To begin the process of flux rope detection, load magnetic field netCDF data into the specified input data directory. The filename prefixes should be provided in the configuration file. Files should be labeled according to simulation day, padded with zeros to five digits. This should be followed by an underscore, and a simulation hour with two digits. For example, b_00042_12.nc .
 
-    $ python3 FRoDO-prep.py
+To begin, enter into a Python 3 environment via the command line,
+
+    $ python3
+
+Note that for the moment, Python 3 is the recommended and supported version to execute this code. Begin by loading the FRoDO library of functions,
+
+    >>> import FRoDO
+
+The magnetic vector potential can then be computed for the given sample dataset using:
+
+    >>> FRoDO.prep()
 
 This will create a series of additional netCDF files to store the magnetic vector potential. From here, tracking can be completed with:
 
-    $ python3 FRoDO.py
+    >>> FRoDO.FRoDO()
 
-The resulting output files are saved to the specified output directory. Output files are marked by 'fr-#####.nc', and contain flux rope footprint locations, along with other associated data. Having stepped through all of the provided data, tracking is performed on detected flux rope footprints, with associated time histories stored in the subdirectory 'hist' of the specified output directory. These python Pickle files contain the lists of arrays storing the time history for each unique flux rope structure. The labeling provided in the array of footprints in the 'fr-#####.nc' corresponds to the element of these lists containing the associated history.
+The resulting output files are saved to the specified output directory. Output files are marked by 'fr-ddddd_hh.nc', and contain flux rope footprint locations, along with other associated data. Having stepped through all of the provided data, tracking is performed on detected flux rope footprints, with associated time histories stored in the subdirectory 'hist' of the specified output directory. These python Pickle files contain the lists of arrays storing the time history for each unique flux rope structure. The labeling provided in the array of footprints in the 'fr-ddddd_hh.nc' corresponds to the element of these lists containing the associated history.
 
 Note that all large-helicity structures are tracked and stored here in this initial tracking. To filter out tall / brief features that are not quite so flux-ropish, the array fr-frg is stored in the output history directory.
 
 To begin the process of tracking eruptive flux ropes:
 
-    $ python3 FRoDO-erupt.py
+    >>> FRoDO.erupt()
 
 After processing has completed, erupting / non-erupting labels will be saved into the specified output directory, under the subdirectory 'hist'. Note that these labels must be cross-referenced with the list of flux ropes contained within fr-rfrg from earlier.
 
@@ -56,12 +66,18 @@ This will read in all of the aforementioned time histories, as well as eruption 
 
 To run through a more standardized set of plotting routines,
 
-    $ python3 FRoDO-plot.py
+    >>> FRoDO.plot()
 
 This will read output data, filter flux ropes accordingly, and create a standardized set of output plots for visualization. Feel free to use this as a starting point to further explore this data.
 
 To compute some statistics for the detected flux ropes,
 
-    $ python3 FRoDO-stats.py
+    >>> FRoDO.stats()
 
 Mean values and associated standard deviations will be calculated and displayed, along with several t-tests and correlation coefficients.
+
+Note that while all of these subroutines can be executed individually from within an interactive Python environment, FRoDO can be executed in a more script-like fashion from the command line,
+
+    $ python3 FRoDO.py
+
+This will run in sequence the FRoDO(), erupt(), plot(), and stats() subroutines, outputting the resulting data accordingly.
