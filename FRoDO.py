@@ -27,7 +27,6 @@ import scipy
 import scipy.stats
 from scipy.io import netcdf
 
-import sunpy.time
 from sunpy.physics.differential_rotation import diff_rot
 import astropy.units as u
 
@@ -74,7 +73,7 @@ def FRoDO():
     os.system("mkdir " + outdir + 'hist/')
 
     # Remove any existing files
-    os.system("rm " + outdir + "*")
+    os.system("rm " + outdir + "*.nc")
     os.system("rm " + outdir + "hist/*")
 
     # Generate a list of files to search through
@@ -147,7 +146,7 @@ def FRoDO():
         bph = d.variables['bph'][:,:,:].copy()
         cdate = d.date
         ctarr = datetime.datetime.strptime(bytes.decode(cdate),"%Y%b%d_%H%M")
-        cjuld = np.double(sunpy.time.julian_day(ctarr))
+        cjuld = np.double(ctarr.toordinal()+1721425.0)
         tarr.append(ctarr)
 
         d.close()
@@ -439,10 +438,10 @@ def FRoDO():
     fr_hdrext = np.zeros(len(fr_dur), dtype=np.double)
     for fri in np.arange(1,len(fr_dur)):
         fr_hdrext[fri] = dtarr[(np.where(frh_rext[fri] > 1.5)[0])].sum()
-    fr_rfrg = np.where((fr_hdrext / fr_dur) < 0.5)[0]
+    fr_rfrg = np.where((fr_hdrext[1:] / fr_dur[1:]) < 0.5)[0] + 1
 
     # Create a filter to remove flux ropes with less than a single day of time history
-    fr_dfrg = np.where((fr_dur > 1) & (np.isfinite(fr_dur)))[0]
+    fr_dfrg = np.where((fr_dur[1:] > 1) & (np.isfinite(fr_dur[1:])))[0]+1
 
     # Merge these into a single filtered index
     fr_frg = np.intersect1d(fr_rfrg, fr_dfrg)
@@ -573,7 +572,7 @@ def erupt():
         bph = d.variables['bph'][:,:,:].copy()
         cdate = d.date
         ctarr = datetime.datetime.strptime(bytes.decode(cdate),"%Y%b%d_%H%M")
-        cjuld = np.double(sunpy.time.julian_day(ctarr))
+        cjuld = np.double(ctarr.toordinal()+1721425.0)
         tarr.append(ctarr)
 
         # Close netCDF files
