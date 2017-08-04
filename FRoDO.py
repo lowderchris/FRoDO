@@ -1342,57 +1342,77 @@ def stats():
     for i in np.arange(len(earr)):
         etarr.append(tarr[earr[i]])
 
+    # Open file for writing
+    f = open(outdir + 'stats.txt', 'w')
+
     # Calculate and print some statistics
 
-    print('Mean erupting unsigned net helicity (Mx^2)', '%1.2E'%abs(fr_nhlcy[fr_elab]).mean())
-    print('Mean non-erupting unsigned net helicity (Mx^2)', '%1.2E'%abs(fr_nhlcy[fr_nelab]).mean())
-    print('Standard deviation of erupting unsigned net helicity (Mx^2)', '%1.2E'%scipy.stats.tstd(abs(fr_nhlcy[fr_elab])))
-    print('Standard deviation non-erupting unsigned net helicity (Mx^2)', '%1.2E'%scipy.stats.tstd(abs(fr_nhlcy[fr_nelab])))
+    f.write('Mean erupting unsigned net helicity (Mx^2) ' + '%1.2E'%abs(fr_nhlcy[fr_elab]).mean() + '\n')
+    f.write('Mean non-erupting unsigned net helicity (Mx^2) ' + '%1.2E'%abs(fr_nhlcy[fr_nelab]).mean())
+    f.write('Standard deviation of erupting unsigned net helicity (Mx^2) ' + '%1.2E'%scipy.stats.tstd(abs(fr_nhlcy[fr_elab])) + '\n')
+    f.write('Standard deviation non-erupting unsigned net helicity (Mx^2) ' + '%1.2E'%scipy.stats.tstd(abs(fr_nhlcy[fr_nelab])) + '\n')
 
-    print('Mean erupting unsigned magnetic flux (Mx)','%1.2E'%abs(fr_uflux[fr_elab]).mean())
-    print('Mean non-erupting unsigned magnetic flux (Mx)','%1.2E'%abs(fr_uflux[fr_nelab]).mean())
-    print('Standard deviation erupting unsigned magnetic flux (Mx)','%1.2E'%scipy.stats.tstd(abs(fr_uflux[fr_elab])))
-    print('Standard deviation non-erupting unsigned magnetic flux (Mx)','%1.2E'%scipy.stats.tstd(abs(fr_uflux[fr_nelab])))
+    f.write('Mean erupting unsigned magnetic flux (Mx) ' + '%1.2E'%abs(fr_uflux[fr_elab]).mean() + '\n')
+    f.write('Mean non-erupting unsigned magnetic flux (Mx) ' + '%1.2E'%abs(fr_uflux[fr_nelab]).mean() + '\n')
+    f.write('Standard deviation erupting unsigned magnetic flux (Mx) ' + '%1.2E'%scipy.stats.tstd(abs(fr_uflux[fr_elab])) + '\n')
+    f.write('Standard deviation non-erupting unsigned magnetic flux (Mx) ' + '%1.2E'%scipy.stats.tstd(abs(fr_uflux[fr_nelab])) + '\n')
 
-    print('Mean erupting footprint area (cm^2)','%1.2E'%abs(fr_area[fr_elab]).mean())
-    print('Mean non-erupting footprint area (cm^2)','%1.2E'%abs(fr_area[fr_nelab]).mean())
-    print('Standard deviation erupting footprint area (cm^2)','%1.2E'%scipy.stats.tstd(abs(fr_area[fr_elab])))
-    print('Standard deviation non-erupting footprint area (cm^2)','%1.2E'%scipy.stats.tstd(abs(fr_area[fr_nelab])))
+    f.write('Mean erupting footprint area (cm^2) ' + '%1.2E'%abs(fr_area[fr_elab]).mean() + '\n')
+    f.write('Mean non-erupting footprint area (cm^2) ' + '%1.2E'%abs(fr_area[fr_nelab]).mean() + '\n')
+    f.write('Standard deviation erupting footprint area (cm^2) ' + '%1.2E'%scipy.stats.tstd(abs(fr_area[fr_elab])) + '\n')
+    f.write('Standard deviation non-erupting footprint area (cm^2) ' + '%1.2E'%scipy.stats.tstd(abs(fr_area[fr_nelab])) + '\n')
 
-    print('Mean erupting duration (days)','%2.1f'%abs(fr_dur[fr_elab]).mean())
-    print('Mean non-erupting duration (days)','%2.1f'%abs(fr_dur[fr_nelab]).mean())
-    print('Standard deviation erupting duration (days)','%2.1f'%scipy.stats.tstd(abs(fr_dur[fr_elab])))
-    print('Standard deviation non-erupting duration (days)','%2.1f'%scipy.stats.tstd(abs(fr_dur[fr_nelab])))
+    f.write('Mean erupting duration (days) ' + '%2.1f'%abs(fr_dur[fr_elab]).mean() + '\n')
+    f.write('Mean non-erupting duration (days) ' + '%2.1f'%abs(fr_dur[fr_nelab]).mean() + '\n')
+    f.write('Standard deviation erupting duration (days) ' + '%2.1f'%scipy.stats.tstd(abs(fr_dur[fr_elab])) + '\n')
+    f.write('Standard deviation non-erupting duration (days) ' + '%2.1f'%scipy.stats.tstd(abs(fr_dur[fr_nelab])) + '\n')
 
     # Calculate the t-test for the erupting and non-erupting sets
     # The independent t-test should be used here, as these are separate sets
     # Note that Welchs t-test is used here, as we have differing sample sizes, with unsure equality of population variance.
     # This calculation returns the calculated t-statistic value, and the two-tailed p-value.
 
-    print('T-test for unsigned net helicity:', scipy.stats.ttest_ind(abs(fr_nhlcy[fr_elab]), abs(fr_nhlcy[fr_nelab]),equal_var=False))
+    f.write('T-test t-statistics and two-tailed p-values:' + '\n')
 
-    print('T-test for unsigned magnetic flux:', scipy.stats.ttest_ind(fr_uflux[fr_elab], fr_uflux[fr_nelab],equal_var=False))
+    t1 = scipy.stats.ttest_ind(abs(fr_nhlcy[fr_elab]), abs(fr_nhlcy[fr_nelab]),equal_var=False)
+    f.write('T-test for unsigned net helicity: ' + '%2.1f'%t1.statistic + ' ' + '%1.2E'%t1.pvalue + '\n')
 
-    print('T-test for footprint area:', scipy.stats.ttest_ind(fr_area[fr_elab], fr_area[fr_nelab],equal_var=False))
+    t2 = scipy.stats.ttest_ind(fr_uflux[fr_elab], fr_uflux[fr_nelab],equal_var=False)
+    f.write('T-test for unsigned magnetic flux: ' + '%2.1f'%t2.statistic + ' ' + '%1.2E'%t2.pvalue + '\n')
 
-    print('T-test for duration:', scipy.stats.ttest_ind(fr_dur[fr_elab], fr_dur[fr_nelab],equal_var=False))
+    t3 = scipy.stats.ttest_ind(fr_area[fr_elab], fr_area[fr_nelab],equal_var=False)
+    f.write('T-test for footprint area: ' + '%2.1f'%t3.statistic + ' ' + '%1.2E'%t3.pvalue + '\n')
+
+    t4 = scipy.stats.ttest_ind(fr_dur[fr_elab], fr_dur[fr_nelab],equal_var=False)
+    f.write('T-test for duration: ' + '%2.2f'%t4.statistic + ' ' + '%2.1E'%t4.pvalue + '\n')
 
     # Calculate linear fits for scatter distributions, along with appropriate statistics.
 
-    # Duration and unsigned net helicity
-    print('Spearman rank-order calculation for non-erupting duration and unsigned net helicity:',scipy.stats.spearmanr(fr_dur[fr_nelab], abs(fr_nhlcy[fr_nelab])))
+    f.write('Spearman correlation and p-values:' + '\n')
 
-    print('Spearman rank-order calculation for erupting duration and unsigned net helicity:',scipy.stats.spearmanr(fr_dur[fr_elab], abs(fr_nhlcy[fr_elab])))
+    # Duration and unsigned net helicity
+    s1n = scipy.stats.spearmanr(fr_dur[fr_nelab], abs(fr_nhlcy[fr_nelab]))
+    f.write('Spearman rank-order calculation for non-erupting duration and unsigned net helicity: ' + '%1.2f'%s1n.correlation + ' ' +  '%1.1E'%s1n.pvalue + '\n')
+
+    s1e = scipy.stats.spearmanr(fr_dur[fr_elab], abs(fr_nhlcy[fr_elab]))
+    f.write('Spearman rank-order calculation for erupting duration and unsigned net helicity: ' + '%1.2f'%s1e.correlation + ' ' + '%1.1E'%s1e.pvalue + '\n')
 
     # Duration and unsigned magnetic flux
-    print('Spearman rank-order calculation for non-erupting duration and unsigned magnetic flux:',scipy.stats.spearmanr(fr_dur[fr_nelab], fr_uflux[fr_nelab]))
+    s2n = scipy.stats.spearmanr(fr_dur[fr_nelab], fr_uflux[fr_nelab])
+    f.write('Spearman rank-order calculation for non-erupting duration and unsigned magnetic flux: ' + '%1.2f'%s2n.correlation + ' ' + '%1.1E'%s2n.pvalue + '\n')
 
-    print('Spearman rank-order calculation for erupting duration and unsigned magnetic flux:',scipy.stats.spearmanr(fr_dur[fr_elab], fr_uflux[fr_elab]))
+    s2e = scipy.stats.spearmanr(fr_dur[fr_elab], fr_uflux[fr_elab])
+    f.write('Spearman rank-order calculation for erupting duration and unsigned magnetic flux: ' + '%1.2f'%s2e.correlation + ' ' + '%1.1E'%s2e.pvalue + '\n')
 
     # Unsigned magnetic flux and unsigned net helicity
-    print('Spearman rank-order calculation for non-erupting unsigned magnetic flux  and unsigned net helicity:',scipy.stats.spearmanr(fr_uflux[fr_nelab], abs(fr_nhlcy[fr_nelab])))
+    s3n = scipy.stats.spearmanr(fr_uflux[fr_nelab], abs(fr_nhlcy[fr_nelab]))
+    f.write('Spearman rank-order calculation for non-erupting unsigned magnetic flux  and unsigned net helicity: ' + '%1.2f'%s3n.correlation + ' ' + '%1.1E'%s3n.pvalue + '\n')
 
-    print('Spearman rank-order calculation for erupting unsigned magnetic flux  and unsigned net helicity:',scipy.stats.spearmanr(fr_uflux[fr_elab], abs(fr_nhlcy[fr_elab])))
+    s3e = scipy.stats.spearmanr(fr_uflux[fr_elab], abs(fr_nhlcy[fr_elab]))
+    f.write('Spearman rank-order calculation for erupting unsigned magnetic flux  and unsigned net helicity: ' + '%1.2f'%s3e.correlation + ' ' + '%1.1E'%s3e.pvalue + '\n')
+
+    # All good things...
+    f.close()
 
 def read(csfrm):
 
