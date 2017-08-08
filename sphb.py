@@ -4,7 +4,7 @@ import matplotlib.cm as cm
 from matplotlib.mlab import griddata
 import bisect
 import sys
-import tracer
+from tracer import tracer
 #import tracerpy
 
 class SphB:

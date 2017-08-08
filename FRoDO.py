@@ -52,7 +52,7 @@ ref_havg = np.double(config['thresholds']['ref_havg'])
 def prep():
 
     # Import prep libraries
-    import compA
+    from compA import compA
 
     # Generate a list of files to search through
     files = glob.glob('./dat/*.nc')

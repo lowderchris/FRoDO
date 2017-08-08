@@ -28,6 +28,29 @@ A few astronomy-specific libraries prove useful:
 
     $ pip install astropy sunpy
 
+### Compiled dependencies
+
+Two sets of FORTRAN codes must first be compiled for use with the main FRoDO Python code.
+
+A fieldline tracer FORTRAN code, tracer.f90, can be compiled directly with the commands,
+
+    $ cd tracer
+    $ f2py -m tracer --fcompiler=gfortran --f90flags='-fopenmp' -lgomp -c tracer.f90
+
+A set of routines for the calculation of the magnetic vector potential can be computed using the appropriate commands,
+
+    $ cd compA
+    (Macintosh) $ f2py -m compA --fcompiler=gfortran -I/usr/local/include/ -L/usr/lib/libnetcdff.so.5 -lnetcdff --f90flags='-fopenmp' -lgomp -c main.f90 shared.f90 input_output.f90 vectorpot.f90
+    (Linux) $ f2py -m compA --fcompiler=gfortran -I/usr/lib64/gfortran/modules -L/usr/lib64/libnetcdff.so.5 -lnetcdff --f90flags='-fopenmp' -lgomp -c main.f90 shared.f90 input_output.f90 vectorpot.f90
+
+Note that this requires specification of the location of netCDF libraries on the current machine. For one of the linux machines, these paths should be:
+
+    -I/usr/lib64/gfortran/modules -L/usr/lib64/libnetcdff.so.5 -lnetcdff
+
+For a macintosh machine, these should be located with:
+
+    -I/usr/local/include/ -L/usr/lib/libnetcdff.so.5 -lnetcdff
+
 ## Usage
 
 To begin the process of flux rope detection, load magnetic field netCDF data into the specified input data directory. The filename prefixes should be provided in the configuration file. Files should be labeled according to simulation day, padded with zeros to five digits. This should be followed by an underscore, and a simulation hour with two digits. For example, b_00042_12.nc .
