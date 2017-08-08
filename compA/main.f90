@@ -6,7 +6,7 @@
 ! > setenv OMP_NUM_THREADS 4
 !----------------------------------------------------------------
 
-subroutine compA(snap)
+subroutine compA(snap, filePath)
 
   use shared
   use input_output
@@ -15,7 +15,7 @@ subroutine compA(snap)
   
   implicit none
 
-  character*(*), parameter :: filePath='./dat/'
+  character*(*) :: filePath
   character*(*) :: snap
   integer :: nr,nth,nph,nth1
   real(dp), dimension(:,:,:), allocatable :: br,bth,bph,ar,ath,aph

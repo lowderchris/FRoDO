@@ -55,7 +55,7 @@ def prep():
     from compA import compA
 
     # Generate a list of files to search through
-    files = glob.glob('./dat/*.nc')
+    files = glob.glob(datdir+bdatprefix+'*.nc')
     files.sort()
 
     # Cycle through input data
@@ -64,7 +64,7 @@ def prep():
         # Compute and store magnetic vector potential
         # Note that for now, for this naming scheme, just extract the timing string:
         # This will be fixed in future for more general data usage
-        compA.compa(file[-11:-3])
+        compA.compa(file[-11:-3], datdir)
 
 def FRoDO():
 
