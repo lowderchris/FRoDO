@@ -1253,7 +1253,11 @@ def plot():
     tight_layout()
     savefig('plt/fr_pmap'+fnapp+'.pdf')
 
-def stats():
+def stats(tex=False):
+
+    # Remove any existing files
+    os.system("rm " + outdir + "stats.txt")
+    os.system("rm " + outdir + "stats-tex.tex")
 
     # Read data
     infile = open(outdir + '/hist/h-fr-area.pkl', 'rb')
@@ -1348,7 +1352,7 @@ def stats():
     # Calculate and print some statistics
 
     f.write('Mean erupting unsigned net helicity (Mx^2) ' + '%1.2E'%abs(fr_nhlcy[fr_elab]).mean() + '\n')
-    f.write('Mean non-erupting unsigned net helicity (Mx^2) ' + '%1.2E'%abs(fr_nhlcy[fr_nelab]).mean())
+    f.write('Mean non-erupting unsigned net helicity (Mx^2) ' + '%1.2E'%abs(fr_nhlcy[fr_nelab]).mean() + '\n')
     f.write('Standard deviation of erupting unsigned net helicity (Mx^2) ' + '%1.2E'%scipy.stats.tstd(abs(fr_nhlcy[fr_elab])) + '\n')
     f.write('Standard deviation non-erupting unsigned net helicity (Mx^2) ' + '%1.2E'%scipy.stats.tstd(abs(fr_nhlcy[fr_nelab])) + '\n')
 
@@ -1413,6 +1417,80 @@ def stats():
 
     # All good things...
     f.close()
+
+    # For an optional flag on execution, output the same statistics, but in a friendly LaTeX table format...
+
+    if tex:
+        # Open file for writing
+        f = open(outdir + 'stats-tex.tex', 'w')
+
+        # Write table of flux rope fit statistics
+        f.write(r'\begin{deluxetable}{cccll}'+'\n')
+        f.write(r'\tablecaption{Flux rope statistics}'+'\n')
+        f.write(r'\tablecolumns{5}'+'\n')
+        f.write(r'\tablenum{1}'+'\n')
+        f.write(r'\label{tab:fluxrope_stats}'+'\n')
+        f.write(r'\tablewidth{0pt}'+'\n')
+        f.write(r'\tablehead{'+'\n')
+        f.write(r'\colhead{} & \multicolumn{2}{c}{Quantity} & \multicolumn{2}{c}{Spearman}\\'+'\n')
+        f.write(r'\cline{2-3} \cline{4-5}\\'+'\n')
+        f.write(r'\colhead{E/NE} & \colhead{1} & \colhead{2} & \colhead{cc} & \colhead{$p$-value}}'+'\n')
+        f.write(r'\startdata'+'\n')
+        f.write(r'\decimals'+'\n')
+
+        # Duration and unsigned net helicity
+        f.write('NE & t & $|$H$|$ & ' + '%1.2f'%s1n.correlation + ' & ' + ('%1.1E'%s1n.pvalue)[0:3] + '$\\times 10^{' + ('%1.1E'%s1n.pvalue)[-3:] + '}$ \\\ \n')
+        f.write('E & t & $|$H$|$ & ' + '%1.2f'%s1e.correlation + ' & ' + ('%1.1E'%s1e.pvalue)[0:3] + '$\\times 10^{' + ('%1.1E'%s1e.pvalue)[-3:] + '}$ \\\ \n')
+
+        # Duration and unsigned magnetic flux
+        f.write('NE & t & $|\Phi_m|$ & ' + '%1.2f'%s2n.correlation + ' & ' + ('%1.1E'%s2n.pvalue)[0:3] + '$\\times 10^{' + ('%1.1E'%s2n.pvalue)[-3:] + '}$ \\\ \n')
+        f.write('E & t & $|\Phi_m|$ & ' + '%1.2f'%s2e.correlation + ' & ' + ('%1.1E'%s2e.pvalue)[0:3] + '$\\times 10^{' + ('%1.1E'%s2e.pvalue)[-3:] + '}$ \\\ \n')
+
+        # Unsigned magnetic flux and unsigned net helicity
+        f.write('NE & $|\Phi_m|$ & $|$H$|$ & ' + '%1.2f'%s3n.correlation + ' & ' + ('%1.1E'%s3n.pvalue)[0:3] + '$\\times 10^{' + ('%1.1E'%s3n.pvalue)[-3:] + '}$ \\\ \n')
+        f.write('E & $|\Phi_m|$ & $|$H$|$ & ' + '%1.2f'%s3e.correlation + ' & ' + ('%1.1E'%s3e.pvalue)[0:3] + '$\\times 10^{' + ('%1.1E'%s3e.pvalue)[-3:] + '}$ \\\ \n')
+
+        f.write('\enddata' + '\n')
+        f.write('\end{deluxetable}' + '\n')
+
+        f.write('\n')
+        f.write('%%%' + '\n')
+        f.write('\n')
+
+        # Write table of flux rope statistics
+
+        f.write(r'\begin{deluxetable*}{rllll}' + '\n')
+        f.write(r'\tablecaption{Mean flux rope parameters}' + '\n')
+        f.write(r'\tablecolumns{5}' + '\n')
+        f.write(r'\tablenum{2}' + '\n')
+        f.write(r'\label{tab:fluxrope_params}' + '\n')
+        f.write(r'\tablewidth{0pt}' + '\n')
+        f.write(r'\tablehead{' + '\n')
+        f.write(r'\colhead{Quantity} & \colhead{Erupting} & \colhead{Non-erupting} & \colhead{t-statistic} & \colhead{$p$-value}}' + '\n')
+        f.write(r'\decimals' + '\n')
+        f.write(r'\startdata' + '\n')
+
+        # Net helicity magnitude
+        f.write('$|\\textrm{H}|$ (Mx$^2$) & ' + ('%1.2E'%abs(fr_nhlcy[fr_elab]).mean())[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%abs(fr_nhlcy[fr_elab]).mean())[-2:] + '}$ $\pm$ ' + ('%1.2E'%scipy.stats.tstd(abs(fr_nhlcy[fr_elab])))[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%scipy.stats.tstd(abs(fr_nhlcy[fr_elab])))[-2:] + '}$ & ' + ('%1.2E'%abs(fr_nhlcy[fr_nelab]).mean())[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%abs(fr_nhlcy[fr_nelab]).mean())[-2:] + '}$ $\pm$ ' + ('%1.2E'%scipy.stats.tstd(abs(fr_nhlcy[fr_nelab])))[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%scipy.stats.tstd(abs(fr_nhlcy[fr_nelab])))[-2:] + '}$ & ' + '%2.1f'%t1.statistic + ' & ' + ('%1.2E'%t1.pvalue)[0:4] + ' $\\times 10^{' + ('%1.2E'%t1.pvalue)[-3:] + '}$' + '\\\ \n')
+
+        # Unsigned magnetic flux
+        f.write('${\Phi}_m$ (Mx) & ' + ('%1.2E'%abs(fr_uflux[fr_elab]).mean())[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%abs(fr_uflux[fr_elab]).mean())[-2:] + '}$ $\pm$ ' + ('%1.2E'%scipy.stats.tstd(abs(fr_uflux[fr_elab])))[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%scipy.stats.tstd(abs(fr_uflux[fr_elab])))[-2:] + '}$ & ' + ('%1.2E'%abs(fr_uflux[fr_nelab]).mean())[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%abs(fr_uflux[fr_nelab]).mean())[-2:] + '}$ $\pm$ ' + ('%1.2E'%scipy.stats.tstd(abs(fr_uflux[fr_nelab])))[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%scipy.stats.tstd(abs(fr_uflux[fr_nelab])))[-2:] + '}$ & ' + '%2.1f'%t2.statistic + ' & ' + ('%1.2E'%t2.pvalue)[0:4] + ' $\\times 10^{' + ('%1.2E'%t2.pvalue)[-3:] + '}$' + '\\\ \n')
+
+        # Footprint area
+        f.write('${\\textrm{A}}$ (cm$^2$) & ' + ('%1.2E'%abs(fr_area[fr_elab]).mean())[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%abs(fr_area[fr_elab]).mean())[-2:] + '}$ $\pm$ ' + ('%1.2E'%scipy.stats.tstd(abs(fr_area[fr_elab])))[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%scipy.stats.tstd(abs(fr_area[fr_elab])))[-2:] + '}$ & ' + ('%1.2E'%abs(fr_area[fr_nelab]).mean())[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%abs(fr_area[fr_nelab]).mean())[-2:] + '}$ $\pm$ ' + ('%1.2E'%scipy.stats.tstd(abs(fr_area[fr_nelab])))[0:4] + ' $ ' + '\\times 10^{' + ('%1.2E'%scipy.stats.tstd(abs(fr_area[fr_nelab])))[-2:] + '}$ & ' + '%2.1f'%t3.statistic + ' & ' + ('%1.2E'%t3.pvalue)[0:4] + ' $\\times 10^{' + ('%1.2E'%t3.pvalue)[-3:] + '}$' + '\\\ \n')
+
+        # Duration
+        f.write('${\\tau}$ (days) & ' + '%2.1f'%abs(fr_dur[fr_elab]).mean() + ' $\pm$ ' + ('%2.1f'%scipy.stats.tstd(abs(fr_dur[fr_elab]))) + ' & ' + '%2.1f'%abs(fr_dur[fr_nelab]).mean() + ' $\pm$ ' + ('%2.1f'%scipy.stats.tstd(abs(fr_dur[fr_nelab]))) + ' & ' + '%2.1f'%t4.statistic + ' & ' + ('%1.2E'%t4.pvalue)[0:4] + ' $\\times 10^{' + ('%1.2E'%t4.pvalue)[-3:] + '}$' + '\\\ \n')
+
+        # Rope number
+
+        f.write('Number of ropes & ' + str(len(fr_elab)) + ' & ' + str(len(fr_nelab)) + ' & . & . \\\ \n')
+
+        f.write('\enddata' + '\n')
+        f.write('\end{deluxetable*}' + '\n')
+
+        # All good things...
+        f.close()
 
 def read(csfrm):
 
