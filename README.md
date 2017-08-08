@@ -14,8 +14,6 @@ The FRoDO code has a few specific goals in mind:
 
 For the moment this code works with a sample dataset that will be provided. This will eventually expand to include user-provided datasets, conforming with certain requirements on domain, etc. For the time being, please contact us for a sample dataset that we can provide on request.
 
-At the moment this code works with a cadence of one day, though this will be modified and user adjustable in future releases.
-
 ## Dependencies
 
 Python 3 is supported for the use of this code.
