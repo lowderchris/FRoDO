@@ -38,14 +38,13 @@ A fieldline tracer FORTRAN code, tracer.f90, can be compiled directly with the c
 A set of routines for the calculation of the magnetic vector potential can be computed using the appropriate commands,
 
     $ cd compA
-    (Macintosh) $ f2py -m compA --fcompiler=gfortran -I/usr/local/include/ -L/usr/lib/libnetcdff.so.5 -lnetcdff --f90flags='-fopenmp' -lgomp -c main.f90 shared.f90 input_output.f90 vectorpot.f90
-    (Linux) $ f2py -m compA --fcompiler=gfortran -I/usr/lib64/gfortran/modules -L/usr/lib64/libnetcdff.so.5 -lnetcdff --f90flags='-fopenmp' -lgomp -c main.f90 shared.f90 input_output.f90 vectorpot.f90
+    $ f2py -m compA --fcompiler=gfortran -I/path/to/gfortran/modules/ -L/path/to/libnetcdff.so.5 -lnetcdff --f90flags='-fopenmp' -lgomp -c main.f90 shared.f90 input_output.f90 vectorpot.f90
 
-Note that this requires specification of the location of netCDF libraries on the current machine. For one of the linux machines, these paths should be:
+Note that this requires specification of the location of netCDF libraries on the current machine. This may vary for the particular machine and method of installation of netCDF libraries. As an example, for a Linux machine, libraries are located using,
 
     -I/usr/lib64/gfortran/modules -L/usr/lib64/libnetcdff.so.5 -lnetcdff
 
-For a macintosh machine, these should be located with:
+For a sample Macintosh machine (with Homebrew netCDF), these should be located with:
 
     -I/usr/local/include/ -L/usr/lib/libnetcdff.so.5 -lnetcdff
 
@@ -89,7 +88,7 @@ To compute some statistics for the detected flux ropes,
 
     >>> FRoDO.stats()
 
-Mean values and associated standard deviations will be calculated and displayed, along with several t-tests and correlation coefficients.
+Mean values and associated standard deviations will be calculated, along with several t-tests and correlation coefficients. This data will be written to the file stats.txt, located in the user-specified output directory. An optional flag, FRoDO.stats(tex=True) will in addition output stats-tex.tex, two pre-built deluxetable snippets that display relevant flux rope statistics.
 
 Note that while all of these subroutines can be executed individually from within an interactive Python environment, FRoDO can be executed in a more script-like fashion from the command line,
 
