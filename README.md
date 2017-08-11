@@ -120,4 +120,6 @@ Before starting, a few specified parameters must be set under the plot3d section
     $ python3
     >>> import plot3d
 
+To run through the animation process, execute this with the command,
 
+    >> plot3d.plot3d()
