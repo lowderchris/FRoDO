@@ -105,13 +105,10 @@ The three dimensional plotting routines outlined in this section are still under
 The Mayavi set of routines is the primary dependency for these three dimensional plotting routines, and also the source of most of the headaches involved. [Installation instructions](http://docs.enthought.com/mayavi/mayavi/installation.html) are available, where using a recommended Python bundle (Anaconda, Enthought, etc) is recommended. The author has had luck with installation on a Macintosh machine with the methodology,
 
     brew install qt
-    brew install homebrew/science/vtk5 —with-python —with-tcl
-    echo /usr/local/opt/vtk5/lib/python2.7/site-packages >> /usr/local/lib/python2.7/site-packages/vtk5.pth
-    pip3 install mayavi
-
-    brew install qt
     brew install vtk --with-python3 --without-python
     pip3 install mayavi
+
+Note that to enable off-screen plotting, the xvfb package is also required. This should be available on some Macintosh machines, and should also be available through the [XQuartz](https://www.xquartz.org) tools.
 
 ### Usage
 
@@ -123,3 +120,5 @@ Before starting, a few specified parameters must be set under the plot3d section
 To run through the animation process, execute this with the command,
 
     >> plot3d.plot3d()
+
+This will render individual frames, outputting data to the specified output frame directory. On completion, these frames will be animated into a single mp4 file.
