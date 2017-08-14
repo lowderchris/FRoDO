@@ -1,5 +1,10 @@
 # FRoDO.py
 # Flux Rope Detection and Organization
+'''
+This set of modules is the Flux Rope Detection and Organization (FRoDO) code.
+For ease of use, it can be executed directly from the command line with python3 FRoDO.py
+For all additional details, consult the aptly named README file.
+'''
 
 # Import libraries
 import matplotlib
@@ -17,6 +22,7 @@ import mpl_toolkits.axisartist.floating_axes as floating_axes
 import b_sim_netcdf
 import os
 import glob
+import shutil
 import datetime
 import pickle
 import pandas as pd
@@ -50,6 +56,12 @@ ref_bavg = np.double(config['thresholds']['ref_bavg'])
 ref_havg = np.double(config['thresholds']['ref_havg'])
 
 def prep():
+    '''
+    Computes magnetic vector potential values in the deVore gauge from input magnetic field data.
+    '''
+
+    # A quick announcement
+    print('Prepping input data...')
 
     # Import prep libraries
     from compA import compA
@@ -67,14 +79,19 @@ def prep():
         compA.compa(file[-11:-3], datdir)
 
 def FRoDO():
+    '''
+    Detects and organizes time histories for magnetic flux ropes.
+    '''
 
-    # Create output directories if needed
-    os.system("mkdir " + outdir)
-    os.system("mkdir " + outdir + 'hist/')
+    # A quick announcement
+    print('Running FRoDO flux rope detection...')
 
     # Remove any existing files
-    os.system("rm " + outdir + "*.nc")
-    os.system("rm " + outdir + "hist/*")
+    shutil.rmtree(outdir)
+
+    # Create output directories if needed
+    if not os.path.exists(outdir) : os.mkdir(outdir)
+    if not os.path.exists(outdir + 'hist/') : os.mkdir(outdir + 'hist/')
 
     # Generate a list of files to search through
     bfrm_list = glob.glob(datdir + bdatprefix + '*.nc')
@@ -529,6 +546,12 @@ def FRoDO():
     outfile.close()
 
 def erupt():
+    '''
+    Detects and flags erupting flux rope signatures.
+    '''
+
+    # A quick announcement
+    print('Running FRoDO flux rope eruption detection...')
 
     # Generate a list of files to search through
     bfrm_list = glob.glob(datdir + bdatprefix + '*.nc')
@@ -835,6 +858,12 @@ def erupt():
     outfile.close()
 
 def plot():
+    '''
+    Creates a standard set of plot outputs for detected flux ropes.
+    '''
+
+    # A quick announcement
+    print('Running plotting routines...')
 
     # Define color tables
     import palettable
@@ -852,11 +881,11 @@ def plot():
     legfsz = 8              # Legend font size
     gsize = 1e20            # Butterfly glyph scaling size
 
-    # Create output directories if needed
-    os.system("mkdir " + 'plt')
-
     # Remove any existing files
-    os.system("rm " + 'plt/' + "*")
+    shutil.rmtree('plt')
+
+    # Create output directories if needed
+    if not os.path.exists('plt') : os.mkdir('plt')
 
     # Define a quick pre-built function for radial plotting
     # Reverse-engineered from a matplotlib example script
@@ -1254,10 +1283,16 @@ def plot():
     savefig('plt/fr_pmap'+fnapp+'.pdf')
 
 def stats(tex=False):
+    '''
+    Computes a series of statistics for erupting and non-erupting magnetic flux ropes.
+    '''
+
+    # A quick announcement
+    print('Calculating FRoDO flux rope statistics...')
 
     # Remove any existing files
-    os.system("rm " + outdir + "stats.txt")
-    os.system("rm " + outdir + "stats-tex.tex")
+    if os.path.exists(outdir + 'stats.txt') : os.remove(outdir + 'stats.txt')
+    if os.path.exists(outdir + 'stats-tex.tex') : os.remove(outdir + 'stats-tex.tex')
 
     # Read data
     infile = open(outdir + '/hist/h-fr-area.pkl', 'rb')
@@ -1493,19 +1528,24 @@ def stats(tex=False):
         f.close()
 
 def read(csfrm):
+    '''
+    Reads a flux rope footprint map for the specified data frame.
+    '''
 
     infile = netcdf.netcdf_file(outdir + 'fr-' + csfrm + '.nc', 'r')
     frmap = infile.variables['frmap'][:,:].copy()
-    frhlcy = infile.variables['frhlcy'][:,:].copy()
-    frrext = infile.variables['frrext'][:,:].copy()
-    br0 = infile.variables['br0'][:,:].copy()
-    lat = infile.variables['lat'][:].copy()
-    lon = infile.variables['lon'][:].copy()
+    #frhlcy = infile.variables['frhlcy'][:,:].copy()
+    #frrext = infile.variables['frrext'][:,:].copy()
+    #br0 = infile.variables['br0'][:,:].copy()
+    #lat = infile.variables['lat'][:].copy()
+    #lon = infile.variables['lon'][:].copy()
     infile.close()
 
     return frmap
 
 if __name__ == "__main__":
+    afiles = glob.glob(datdir+adatprefix+'*.nc')
+    if len(afiles) == 0 : prep()
     FRoDO()
     erupt()
     plot()

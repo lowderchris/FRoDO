@@ -94,7 +94,7 @@ Note that while all of these subroutines can be executed individually from withi
 
     $ python3 FRoDO.py
 
-This will run in sequence the FRoDO(), erupt(), plot(), and stats() subroutines, outputting the resulting data accordingly.
+This will run in sequence the FRoDO(), erupt(), plot(), and stats() subroutines, outputting the resulting data accordingly. Note that the FRoDO.prep() routine will need to be executed separately, and is not included here to avoid running through this calculation if the magnetic vector potential is already computed and provided.
 
 ## plot3d
 
