@@ -1,5 +1,10 @@
 # FRoDO.py
 # Flux Rope Detection and Organization
+'''
+This set of modules is the Flux Rope Detection and Organization (FRoDO) code.
+For ease of use, it can be executed directly from the command line with python3 FRoDO.py
+For all additional details, consult the aptly named README file.
+'''
 
 # Import libraries
 import matplotlib
@@ -51,6 +56,9 @@ ref_bavg = np.double(config['thresholds']['ref_bavg'])
 ref_havg = np.double(config['thresholds']['ref_havg'])
 
 def prep():
+    '''
+    Computes magnetic vector potential values in the deVore gauge from input magnetic field data.
+    '''
 
     # A quick announcement
     print('Prepping input data...')
@@ -71,6 +79,9 @@ def prep():
         compA.compa(file[-11:-3], datdir)
 
 def FRoDO():
+    '''
+    Detects and organizes time histories for magnetic flux ropes.
+    '''
 
     # A quick announcement
     print('Running FRoDO flux rope detection...')
@@ -535,6 +546,9 @@ def FRoDO():
     outfile.close()
 
 def erupt():
+    '''
+    Detects and flags erupting flux rope signatures.
+    '''
 
     # A quick announcement
     print('Running FRoDO flux rope eruption detection...')
@@ -844,6 +858,9 @@ def erupt():
     outfile.close()
 
 def plot():
+    '''
+    Creates a standard set of plot outputs for detected flux ropes.
+    '''
 
     # A quick announcement
     print('Running plotting routines...')
@@ -1266,6 +1283,9 @@ def plot():
     savefig('plt/fr_pmap'+fnapp+'.pdf')
 
 def stats(tex=False):
+    '''
+    Computes a series of statistics for erupting and non-erupting magnetic flux ropes.
+    '''
 
     # A quick announcement
     print('Calculating FRoDO flux rope statistics...')
@@ -1508,14 +1528,17 @@ def stats(tex=False):
         f.close()
 
 def read(csfrm):
+    '''
+    Reads a flux rope footprint map for the specified data frame.
+    '''
 
     infile = netcdf.netcdf_file(outdir + 'fr-' + csfrm + '.nc', 'r')
     frmap = infile.variables['frmap'][:,:].copy()
-    frhlcy = infile.variables['frhlcy'][:,:].copy()
-    frrext = infile.variables['frrext'][:,:].copy()
-    br0 = infile.variables['br0'][:,:].copy()
-    lat = infile.variables['lat'][:].copy()
-    lon = infile.variables['lon'][:].copy()
+    #frhlcy = infile.variables['frhlcy'][:,:].copy()
+    #frrext = infile.variables['frrext'][:,:].copy()
+    #br0 = infile.variables['br0'][:,:].copy()
+    #lat = infile.variables['lat'][:].copy()
+    #lon = infile.variables['lon'][:].copy()
     infile.close()
 
     return frmap
