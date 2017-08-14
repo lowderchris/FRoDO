@@ -1521,6 +1521,8 @@ def read(csfrm):
     return frmap
 
 if __name__ == "__main__":
+    afiles = glob.glob(datdir+adatprefix+'*.nc')
+    if len(afiles) == 0 : prep()
     FRoDO()
     erupt()
     plot()
