@@ -17,6 +17,7 @@ import mpl_toolkits.axisartist.floating_axes as floating_axes
 import b_sim_netcdf
 import os
 import glob
+import shutil
 import datetime
 import pickle
 import pandas as pd
@@ -51,6 +52,9 @@ ref_havg = np.double(config['thresholds']['ref_havg'])
 
 def prep():
 
+    # A quick announcement
+    print('Prepping input data...')
+
     # Import prep libraries
     from compA import compA
 
@@ -68,13 +72,15 @@ def prep():
 
 def FRoDO():
 
-    # Create output directories if needed
-    os.system("mkdir " + outdir)
-    os.system("mkdir " + outdir + 'hist/')
+    # A quick announcement
+    print('Running FRoDO flux rope detection...')
 
     # Remove any existing files
-    os.system("rm " + outdir + "*.nc")
-    os.system("rm " + outdir + "hist/*")
+    shutil.rmtree(outdir)
+
+    # Create output directories if needed
+    if not os.path.exists(outdir) : os.mkdir(outdir)
+    if not os.path.exists(outdir + 'hist/') : os.mkdir(outdir + 'hist/')
 
     # Generate a list of files to search through
     bfrm_list = glob.glob(datdir + bdatprefix + '*.nc')
@@ -530,6 +536,9 @@ def FRoDO():
 
 def erupt():
 
+    # A quick announcement
+    print('Running FRoDO flux rope eruption detection...')
+
     # Generate a list of files to search through
     bfrm_list = glob.glob(datdir + bdatprefix + '*.nc')
     bfrm_list.sort()
@@ -836,6 +845,9 @@ def erupt():
 
 def plot():
 
+    # A quick announcement
+    print('Running plotting routines...')
+
     # Define color tables
     import palettable
     cols = (palettable.colorbrewer.get_map('Paired', 'Qualitative', 12)).mpl_colors
@@ -852,11 +864,11 @@ def plot():
     legfsz = 8              # Legend font size
     gsize = 1e20            # Butterfly glyph scaling size
 
-    # Create output directories if needed
-    os.system("mkdir " + 'plt')
-
     # Remove any existing files
-    os.system("rm " + 'plt/' + "*")
+    shutil.rmtree('plt')
+
+    # Create output directories if needed
+    if not os.path.exists('plt') : os.mkdir('plt')
 
     # Define a quick pre-built function for radial plotting
     # Reverse-engineered from a matplotlib example script
@@ -1255,9 +1267,12 @@ def plot():
 
 def stats(tex=False):
 
+    # A quick announcement
+    print('Calculating FRoDO flux rope statistics...')
+
     # Remove any existing files
-    os.system("rm " + outdir + "stats.txt")
-    os.system("rm " + outdir + "stats-tex.tex")
+    if os.path.exists(outdir + 'stats.txt') : os.remove(outdir + 'stats.txt')
+    if os.path.exists(outdir + 'stats-tex.tex') : os.remove(outdir + 'stats-tex.tex')
 
     # Read data
     infile = open(outdir + '/hist/h-fr-area.pkl', 'rb')
