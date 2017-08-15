@@ -1275,7 +1275,7 @@ def plot():
 
     # Flux rope persistence map
     f, (ax) = subplots(1, figsize=fscale*np.array([3.35,2.0]))
-    im = ax.imshow(fr_pmap, extent=[0,360,-1,1], cmap='Greys')
+    im = ax.imshow(fr_pmap, extent=[0,360,-1,1], cmap='Greys', aspect='auto')
     colorbar(im, label='Flux rope persistence [days]')
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Sine latitude')
