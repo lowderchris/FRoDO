@@ -50,7 +50,7 @@ For a sample Macintosh machine (with Homebrew netCDF), these should be located w
 
 ## Data
 
-For the current version of FRoDO, input magnetic field data files must be in the netCDF format, and have the following variables contained within:
+For the current version of FRoDO, input magnetic field data files must be in the netCDF format, with filenames in chronological order, and have the following variables contained within:
 
 - (r, th, ph) - Coordinate arrays
 - (br, bth, bph) - Datacubes of magnetic field spherical components
