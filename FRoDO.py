@@ -23,6 +23,7 @@ import b_sim_netcdf
 import os
 import glob
 import shutil
+import re
 import datetime
 import pickle
 import pandas as pd
@@ -73,10 +74,11 @@ def prep():
     # Cycle through input data
     for file in files:
 
+        # Extract the file frame string
+        frmstr = re.split(bdatprefix+'|\.', file)[1]
+
         # Compute and store magnetic vector potential
-        # Note that for now, for this naming scheme, just extract the timing string:
-        # This will be fixed in future for more general data usage
-        compA.compa(file[-11:-3], datdir)
+        compA.compa(frmstr, datdir, bdatprefix, adatprefix)
 
 def FRoDO():
     '''
@@ -148,7 +150,7 @@ def FRoDO():
 
         # Define some timing
         time0 = datetime.datetime.now()
-        csfrm = cfrm[-11:-3]
+        csfrm = re.split(bdatprefix+'|\.', cfrm)[1]
 
         # Read magnetic field data into memory
         b = b_sim_netcdf.SphB_sim(datdir + bdatprefix + csfrm + '.nc', datdir + adatprefix + csfrm + '.nc', 128,128,128)
@@ -580,7 +582,7 @@ def erupt():
 
         # Define some timing
         time0 = datetime.datetime.now()
-        csfrm = cfrm[-11:-3]
+        csfrm = re.split(bdatprefix+'|\.', cfrm)[1]
 
         # Read original data into memory
         b = b_sim_netcdf.SphB_sim(datdir + bdatprefix + csfrm + '.nc', datdir + adatprefix + csfrm + '.nc', 128,128,128)
