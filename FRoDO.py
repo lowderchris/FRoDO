@@ -1064,25 +1064,29 @@ def plot():
     for i in np.arange(len(earr)):
         etarr.append(tarr[earr[i]])
 
-
     # Compute the flux and helicity ejection rates
     tarr = np.array(tarr)
     ejr_uflux = np.zeros(len(tarr), dtype=np.double)
     ejr_nhlcy = np.zeros(len(tarr), dtype=np.double)
+    ejr_nerupt = np.zeros(len(tarr), dtype=np.double)
     for i in fr_efpt:
         ejr_uflux[fr_time[i].astype(np.int)] = ejr_uflux[fr_time[i].astype(np.int)] + fr_uflux[i]
         ejr_nhlcy[fr_time[i].astype(np.int)] = ejr_nhlcy[fr_time[i].astype(np.int)] + abs(fr_nhlcy[i])
+        ejr_nerupt[fr_time[i].astype(np.int)] = ejr_nerupt[fr_time[i].astype(np.int)] + 1
 
     dtarr = pd.to_datetime(np.array(pd.date_range(tarr[0].date(), tarr[-1].date(), freq='1D')))
     dejr_uflux = np.zeros(len(dtarr), dtype=np.double)
     dejr_nhlcy = np.zeros(len(dtarr), dtype=np.double)
+    dejr_nerupt = np.zeros(len(dtarr), dtype=np.double)
     for i in np.arange(len(dtarr)):
         if i != len(dtarr)-1:
-           dejr_uflux[i] = ejr_uflux[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum() 
-           dejr_nhlcy[i] = ejr_nhlcy[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum() 
+           dejr_uflux[i] = ejr_uflux[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum()
+           dejr_nhlcy[i] = ejr_nhlcy[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum()
+           dejr_nerupt[i] = ejr_nerupt[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum()
         else:
-           dejr_uflux[i] = ejr_uflux[tarr >= dtarr[i]].sum() 
-           dejr_nhlcy[i] = ejr_nhlcy[tarr >= dtarr[i]].sum() 
+           dejr_uflux[i] = ejr_uflux[tarr >= dtarr[i]].sum()
+           dejr_nhlcy[i] = ejr_nhlcy[tarr >= dtarr[i]].sum()
+           dejr_nerupt[i] = ejr_nerupt[tarr >= dtarr[i]].sum()
 
     # Generate a persistence array for flux ropes
     ofiles = glob.glob(outdir + 'fr-*.nc')
@@ -1143,7 +1147,7 @@ def plot():
     ax2.grid()
     f.autofmt_xdate() # Optional toggle to sort out overlapping dates
     tight_layout()
-    f.savefig('plt/fr-bfly-nshlcy-erupt'+fnapp+'.pdf')
+    f.savefig('plt/fr-bfly-nshlcy'+fnapp+'.pdf')
 
     # A few hexbin scatter plots
 
@@ -1258,7 +1262,19 @@ def plot():
     f.savefig('plt/fr-sct-uflux-nhlcy'+fnapp+'.pdf')
 
     # Helicity and unsigned flux ejection rates
-    f, (ax1, ax2) = subplots(2,1, figsize=fscale*np.array([3.35,5]))
+    f = figure(figsize=fscale*np.array([3.35,5]))
+    gs = gridspec.GridSpec(3, 1,
+                   width_ratios=[1],
+                   height_ratios=[1,2,2]
+                   )
+    ax0 = f.add_subplot(gs[0])
+    ax1 = f.add_subplot(gs[1])
+    ax2 = f.add_subplot(gs[2])
+
+    ax0.plot(tarr, ejr_nerupt)
+    ax0.plot(dtarr, scipy.convolve(dejr_nerupt, np.ones(7)/7., mode='same'), label='7-day', color=defcol2)
+    ax0.set_ylabel('$N_{erupt}$')
+
     ax1.plot(tarr, ejr_uflux, label='Original', color=defcol)
     ax1.plot(dtarr, scipy.convolve(dejr_uflux, np.ones(7)/7., mode='same'), label='7-day', color=defcol2)
     ax2.plot(tarr, ejr_nhlcy, label='Original', color=defcol)
@@ -1267,11 +1283,12 @@ def plot():
     ax2.set_xlabel('Date')
     ax1.set_ylabel(r'$\Phi_m$ [Mx]')
     ax2.set_ylabel(r'H [Mx$^2$]')
+    ax0.xaxis.set_ticklabels([])
     ax1.xaxis.set_ticklabels([])
     for label in ax2.xaxis.get_ticklabels()[::2]:
             label.set_visible(False)
     ax1.legend()
-    f.autofmt_xdate() # Optional toggle to sort out overlapping dates
+    #f.autofmt_xdate() # Optional toggle to sort out overlapping dates
     tight_layout()
     savefig('plt/fr_ejr'+fnapp+'.pdf')
 
