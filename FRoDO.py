@@ -144,6 +144,7 @@ def FRoDO():
 
     # Define some loop counting information
     dcount = 0
+    prntend = '\r'
 
     # Begin cycling through time frames
     for cfrm in bfrm_list:
@@ -445,7 +446,8 @@ def FRoDO():
         else:
             timedel = ((time1 - time0) + timedel) / 2
         timeeta = (nfrm - (dcount+1)) * timedel + time1
-        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
+        if dcount == (len(bfrm_list) - 1) : prntend = '\n'
+        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta), end=prntend)
 
         # Advance the timing index
         dcount = dcount + 1
@@ -578,6 +580,8 @@ def erupt():
 
     # Begin cycling through these frames
     dcount = 0
+    prntend = '\r'
+
     for cfrm in bfrm_list:
 
         # Define some timing
@@ -838,7 +842,8 @@ def erupt():
         else:
             timedel = ((time1 - time0) + timedel) / 2
         timeeta = (nfrm - (dcount+1)) * timedel + time1
-        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
+        if dcount == (len(bfrm_list) - 1) : prntend = '\n'
+        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta), end=prntend)
 
         # Save the current timestamp
         csfrm1 = csfrm
