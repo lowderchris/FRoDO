@@ -6,7 +6,7 @@
 ! > setenv OMP_NUM_THREADS 4
 !----------------------------------------------------------------
 
-subroutine compA(snap, filePath)
+subroutine compA(snap, filePath, bdatprefix, adatprefix)
 
   use shared
   use input_output
@@ -17,6 +17,8 @@ subroutine compA(snap, filePath)
 
   character*(*) :: filePath
   character*(*) :: snap
+  character*(*) :: bdatprefix
+  character*(*) :: adatprefix
   integer :: nr,nth,nph,nth1
   real(dp), dimension(:,:,:), allocatable :: br,bth,bph,ar,ath,aph
   real(dp), dimension(:), allocatable :: r,th,ph,th1
@@ -33,9 +35,9 @@ subroutine compA(snap, filePath)
   print*,'--',snap,'--'
 
   ! Read coordinates:
-  call readDims(filePath//'b_'//snap//'.nc',nr,nth,nph)
+  call readDims(filePath//bdatprefix//snap//'.nc',nr,nth,nph)
   allocate(r(nr),th(nth),ph(nph),y(nth))
-  call readCoords(filePath//'b_'//snap//'.nc',r,th,ph,y)
+  call readCoords(filePath//bdatprefix//snap//'.nc',r,th,ph,y)
   
   ! Make uniform array in y:
   dEq = ph(2)-ph(1)
@@ -48,14 +50,14 @@ subroutine compA(snap, filePath)
   allocate(br(nr,nth1,nph),bth(nr,nth1,nph),bph(nr,nth1,nph))
   
   ! Read in B:
-  call readB(filePath//'b_'//snap//'.nc',br,bth,bph,y)
+  call readB(filePath//bdatprefix//snap//'.nc',br,bth,bph,y)
   
   ! Compute vector potential:
   !call computeAGreens(r, th1, ph, br, bth, bph, ar, ath, aph)
   call computeAgreens(r, th1, ph, br, bth, bph, ar, ath, aph)
 
   ! Add vector potential to output file:
-  call writeA2file(filePath//'a_'//snap//'.nc',r,th,ph,ar,ath,aph,y)
+  call writeA2file(filePath//adatprefix//snap//'.nc',r,th,ph,ar,ath,aph,y)
   deallocate(r,th,ph,y)
   deallocate(th1)
   deallocate(ar,ath,aph)

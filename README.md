@@ -48,9 +48,17 @@ For a sample Macintosh machine (with Homebrew netCDF), these should be located w
 
     -I/usr/local/include/ -L/usr/lib/libnetcdff.so.5 -lnetcdff
 
+## Data
+
+For the current version of FRoDO, input magnetic field data files must be in the netCDF format, with filenames in chronological order, and have the following variables contained within:
+
+- (r, th, ph) - Coordinate arrays
+- (br, bth, bph) - Datacubes of magnetic field spherical components
+- date - Datestring in the format %Y%b%d_%H%M
+
 ## Usage
 
-To begin the process of flux rope detection, load magnetic field netCDF data into the specified input data directory. The filename prefixes should be provided in the configuration file. Files should be labeled according to simulation day, padded with zeros to five digits. This should be followed by an underscore, and a simulation hour with two digits. For example, b_00042_12.nc .
+To begin the process of flux rope detection, load magnetic field netCDF data into the specified input data directory. The filename prefixes should be provided in the configuration file. 
 
 To begin, enter into a Python 3 environment via the command line,
 
@@ -94,7 +102,7 @@ Note that while all of these subroutines can be executed individually from withi
 
     $ python3 FRoDO.py
 
-This will run in sequence the FRoDO(), erupt(), plot(), and stats() subroutines, outputting the resulting data accordingly. Note that the FRoDO.prep() routine will need to be executed separately, and is not included here to avoid running through this calculation if the magnetic vector potential is already computed and provided.
+This will run in sequence the prep(), FRoDO(), erupt(), plot(), and stats() subroutines, outputting the resulting data accordingly. Note that the prep() function will only be executed if the magnetic vector potential has not already been calculated, with appropriate data in the input directory.
 
 ## plot3d
 

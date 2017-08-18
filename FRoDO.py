@@ -23,6 +23,7 @@ import b_sim_netcdf
 import os
 import glob
 import shutil
+import re
 import datetime
 import pickle
 import pandas as pd
@@ -73,10 +74,11 @@ def prep():
     # Cycle through input data
     for file in files:
 
+        # Extract the file frame string
+        frmstr = re.split(bdatprefix+'|\.', file)[1]
+
         # Compute and store magnetic vector potential
-        # Note that for now, for this naming scheme, just extract the timing string:
-        # This will be fixed in future for more general data usage
-        compA.compa(file[-11:-3], datdir)
+        compA.compa(frmstr, datdir, bdatprefix, adatprefix)
 
 def FRoDO():
     '''
@@ -142,13 +144,14 @@ def FRoDO():
 
     # Define some loop counting information
     dcount = 0
+    prntend = '\r'
 
     # Begin cycling through time frames
     for cfrm in bfrm_list:
 
         # Define some timing
         time0 = datetime.datetime.now()
-        csfrm = cfrm[-11:-3]
+        csfrm = re.split(bdatprefix+'|\.', cfrm)[1]
 
         # Read magnetic field data into memory
         b = b_sim_netcdf.SphB_sim(datdir + bdatprefix + csfrm + '.nc', datdir + adatprefix + csfrm + '.nc', 128,128,128)
@@ -443,7 +446,8 @@ def FRoDO():
         else:
             timedel = ((time1 - time0) + timedel) / 2
         timeeta = (nfrm - (dcount+1)) * timedel + time1
-        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
+        if dcount == (len(bfrm_list) - 1) : prntend = '\n'
+        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta), end=prntend)
 
         # Advance the timing index
         dcount = dcount + 1
@@ -576,11 +580,13 @@ def erupt():
 
     # Begin cycling through these frames
     dcount = 0
+    prntend = '\r'
+
     for cfrm in bfrm_list:
 
         # Define some timing
         time0 = datetime.datetime.now()
-        csfrm = cfrm[-11:-3]
+        csfrm = re.split(bdatprefix+'|\.', cfrm)[1]
 
         # Read original data into memory
         b = b_sim_netcdf.SphB_sim(datdir + bdatprefix + csfrm + '.nc', datdir + adatprefix + csfrm + '.nc', 128,128,128)
@@ -836,7 +842,8 @@ def erupt():
         else:
             timedel = ((time1 - time0) + timedel) / 2
         timeeta = (nfrm - (dcount+1)) * timedel + time1
-        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
+        if dcount == (len(bfrm_list) - 1) : prntend = '\n'
+        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta), end=prntend)
 
         # Save the current timestamp
         csfrm1 = csfrm
@@ -1062,25 +1069,29 @@ def plot():
     for i in np.arange(len(earr)):
         etarr.append(tarr[earr[i]])
 
-
     # Compute the flux and helicity ejection rates
     tarr = np.array(tarr)
     ejr_uflux = np.zeros(len(tarr), dtype=np.double)
     ejr_nhlcy = np.zeros(len(tarr), dtype=np.double)
+    ejr_nerupt = np.zeros(len(tarr), dtype=np.double)
     for i in fr_efpt:
         ejr_uflux[fr_time[i].astype(np.int)] = ejr_uflux[fr_time[i].astype(np.int)] + fr_uflux[i]
         ejr_nhlcy[fr_time[i].astype(np.int)] = ejr_nhlcy[fr_time[i].astype(np.int)] + abs(fr_nhlcy[i])
+        ejr_nerupt[fr_time[i].astype(np.int)] = ejr_nerupt[fr_time[i].astype(np.int)] + 1
 
     dtarr = pd.to_datetime(np.array(pd.date_range(tarr[0].date(), tarr[-1].date(), freq='1D')))
     dejr_uflux = np.zeros(len(dtarr), dtype=np.double)
     dejr_nhlcy = np.zeros(len(dtarr), dtype=np.double)
+    dejr_nerupt = np.zeros(len(dtarr), dtype=np.double)
     for i in np.arange(len(dtarr)):
         if i != len(dtarr)-1:
-           dejr_uflux[i] = ejr_uflux[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum() 
-           dejr_nhlcy[i] = ejr_nhlcy[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum() 
+           dejr_uflux[i] = ejr_uflux[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum()
+           dejr_nhlcy[i] = ejr_nhlcy[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum()
+           dejr_nerupt[i] = ejr_nerupt[(tarr >= dtarr[i]) & (tarr < dtarr[i+1])].sum()
         else:
-           dejr_uflux[i] = ejr_uflux[tarr >= dtarr[i]].sum() 
-           dejr_nhlcy[i] = ejr_nhlcy[tarr >= dtarr[i]].sum() 
+           dejr_uflux[i] = ejr_uflux[tarr >= dtarr[i]].sum()
+           dejr_nhlcy[i] = ejr_nhlcy[tarr >= dtarr[i]].sum()
+           dejr_nerupt[i] = ejr_nerupt[tarr >= dtarr[i]].sum()
 
     # Generate a persistence array for flux ropes
     ofiles = glob.glob(outdir + 'fr-*.nc')
@@ -1141,7 +1152,7 @@ def plot():
     ax2.grid()
     f.autofmt_xdate() # Optional toggle to sort out overlapping dates
     tight_layout()
-    f.savefig('plt/fr-bfly-nshlcy-erupt'+fnapp+'.pdf')
+    f.savefig('plt/fr-bfly-nshlcy'+fnapp+'.pdf')
 
     # A few hexbin scatter plots
 
@@ -1256,7 +1267,19 @@ def plot():
     f.savefig('plt/fr-sct-uflux-nhlcy'+fnapp+'.pdf')
 
     # Helicity and unsigned flux ejection rates
-    f, (ax1, ax2) = subplots(2,1, figsize=fscale*np.array([3.35,5]))
+    f = figure(figsize=fscale*np.array([3.35,5]))
+    gs = gridspec.GridSpec(3, 1,
+                   width_ratios=[1],
+                   height_ratios=[1,2,2]
+                   )
+    ax0 = f.add_subplot(gs[0])
+    ax1 = f.add_subplot(gs[1])
+    ax2 = f.add_subplot(gs[2])
+
+    ax0.plot(tarr, ejr_nerupt)
+    ax0.plot(dtarr, scipy.convolve(dejr_nerupt, np.ones(7)/7., mode='same'), label='7-day', color=defcol2)
+    ax0.set_ylabel('$N_{erupt}$')
+
     ax1.plot(tarr, ejr_uflux, label='Original', color=defcol)
     ax1.plot(dtarr, scipy.convolve(dejr_uflux, np.ones(7)/7., mode='same'), label='7-day', color=defcol2)
     ax2.plot(tarr, ejr_nhlcy, label='Original', color=defcol)
@@ -1265,17 +1288,18 @@ def plot():
     ax2.set_xlabel('Date')
     ax1.set_ylabel(r'$\Phi_m$ [Mx]')
     ax2.set_ylabel(r'H [Mx$^2$]')
+    ax0.xaxis.set_ticklabels([])
     ax1.xaxis.set_ticklabels([])
     for label in ax2.xaxis.get_ticklabels()[::2]:
             label.set_visible(False)
     ax1.legend()
-    f.autofmt_xdate() # Optional toggle to sort out overlapping dates
+    #f.autofmt_xdate() # Optional toggle to sort out overlapping dates
     tight_layout()
     savefig('plt/fr_ejr'+fnapp+'.pdf')
 
     # Flux rope persistence map
     f, (ax) = subplots(1, figsize=fscale*np.array([3.35,2.0]))
-    im = ax.imshow(fr_pmap, extent=[0,360,-1,1], cmap='Greys')
+    im = ax.imshow(fr_pmap, extent=[0,360,-1,1], cmap='Greys', aspect='auto')
     colorbar(im, label='Flux rope persistence [days]')
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Sine latitude')
