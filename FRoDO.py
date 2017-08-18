@@ -89,7 +89,7 @@ def FRoDO():
     print('Running FRoDO flux rope detection...')
 
     # Remove any existing files
-    shutil.rmtree(outdir)
+    if os.path.exists(outdir) : shutil.rmtree(outdir)
 
     # Create output directories if needed
     if not os.path.exists(outdir) : os.mkdir(outdir)
@@ -889,7 +889,7 @@ def plot():
     gsize = 1e20            # Butterfly glyph scaling size
 
     # Remove any existing files
-    shutil.rmtree('plt')
+    if os.path.exists('plt') : shutil.rmtree('plt')
 
     # Create output directories if needed
     if not os.path.exists('plt') : os.mkdir('plt')

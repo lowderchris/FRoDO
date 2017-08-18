@@ -26,6 +26,10 @@ A few astronomy-specific libraries prove useful:
 
     $ pip install astropy sunpy
 
+A library for better colormap management:
+
+    $ pip install palettable
+
 ### Compiled dependencies
 
 Two sets of FORTRAN codes must first be compiled for use with the main FRoDO Python code.
@@ -104,13 +108,13 @@ Note that while all of these subroutines can be executed individually from withi
 
 This will run in sequence the prep(), FRoDO(), erupt(), plot(), and stats() subroutines, outputting the resulting data accordingly. Note that the prep() function will only be executed if the magnetic vector potential has not already been calculated, with appropriate data in the input directory.
 
-## plot3d
+## FRoDO_plot
 
-The three dimensional plotting routines outlined in this section are still under development, and require package dependencies that are... tricky to install and update. Proceed with caution all ye who enter here...
+The two and three dimensional plotting routines outlined in this section are still under development, and require package dependencies that are... tricky to install and update. Proceed with caution all ye who enter here...
 
 ### Dependencies
 
-The Mayavi set of routines is the primary dependency for these three dimensional plotting routines, and also the source of most of the headaches involved. [Installation instructions](http://docs.enthought.com/mayavi/mayavi/installation.html) are available, where using a recommended Python bundle (Anaconda, Enthought, etc) is recommended. The author has had luck with installation on a Macintosh machine with the methodology,
+The Mayavi set of routines is the primary dependency for these three dimensional plotting routines, and also the source of most of the headaches involved. [Installation instructions](http://docs.enthought.com/mayavi/mayavi/installation.html) are available, where using a recommended Python bundle (Anaconda, Enthought, etc) is recommended. The author has had luck in the past with installation on a Macintosh machine with the methodology,
 
     brew install qt
     brew install vtk --with-python3 --without-python
@@ -118,15 +122,29 @@ The Mayavi set of routines is the primary dependency for these three dimensional
 
 Note that to enable off-screen plotting, the xvfb package is also required. This should be available on some Macintosh machines, and should also be available through the [XQuartz](https://www.xquartz.org) tools.
 
+The two dimensional plotting routine is much simpler in scope, and relies only on standard matplotlib plotting libraries.
+
 ### Usage
 
 Before starting, a few specified parameters must be set under the plot3d section of config.cfg. These parameters specify a temporary output frame directory, viewing angles, and other plotting toggles. To begin with plotting, enter a Python 3 environment and import the plot3d libraries,
 
     $ python3
-    >>> import plot3d
+    >>> import FRoDO_plot
 
-To run through the animation process, execute this with the command,
+To execute the two-dimensional animation process,
 
-    >> plot3d.plot3d()
+    >>> FRoDO_plot.plot2d()
 
-This will render individual frames, outputting data to the specified output frame directory. On completion, these frames will be animated into a single mp4 file.
+This will animate frames individually, outputting to the specified output frame directory. These frames will then be animated in an output file plt/plot2d.mp4
+
+To run through the three-dimensional animation process, execute this with the command,
+
+    >>> FRoDO_plot.plot3d()
+
+(Note that the moment that this routine is disabled while under development and while sorting out mayavi installation issues). This will render individual frames, outputting data to the specified output frame directory. On completion, these frames will be animated into the file plt/plot3d.mp4
+
+After generating a series of frames with these two routines, an animation can be created manually using,
+
+    >>> FRoDO_plot.animate(filename, frmrt=30)
+
+Here the filename can be specified, along with the output integer framerate.
