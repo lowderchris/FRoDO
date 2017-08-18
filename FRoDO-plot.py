@@ -1,6 +1,5 @@
-# plot3d.py
-# Set of routines to plot FRoDO output data in
-# the third dimension.
+# FRoDO-plot.py
+# Set of routines to plot more advanced plotting outputs
 '''
 This set of modules works alongside generated data from the FRoDO code.
 Specify plotting parameters within the config.cfg file.
@@ -8,7 +7,7 @@ For all additional details, consult the aptly named README file.
 '''
 
 ## To run headlessly in the background,
-## xvfb-run --server-args="-screen 0 1024x768x24" python plot3d.py
+## xvfb-run --server-args="-screen 0 1024x768x24" python FRoDO-plot.py
 
 # Import libraries
 import os
@@ -23,7 +22,6 @@ import numpy as np
 from numpy import pi
 import palettable
 import b_sim_netcdf
-from mayavi import mlab
 
 import configparser
 
@@ -54,6 +52,9 @@ def plot3d():
     '''
     Uses specified plotting parameters to animate a three-dimension visualization of magnetic flux rope evolution.
     '''
+
+    # Import 3D plotting libraries
+    from mayavi import mlab
 
     # Generate a list of files for animating
     files = glob.glob(outdir + 'fr-'+'*.nc')
