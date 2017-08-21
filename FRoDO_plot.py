@@ -110,15 +110,22 @@ def plot2d():
     Flattens data to a two-dimensional representation for a latitude-longitude projection plot of flux rope fieldlines.
     '''
 
+    # A quick announcement
+    print('Plotting detected flux ropes in two dimensions...')
+
     # Remove any existing files
     if os.path.exists(frmdir) : shutil.rmtree(frmdir)
 
     # Create a frame output directory
     if not os.path.exists(frmdir) : os.mkdir(frmdir)
 
+    # Create an output plot directory if needed
+    if not os.path.exists('plt') : os.mkdir('plt')
+
     # Generate a list of files for animating
     files = glob.glob(outdir + 'fr-'+'*.nc')
     files.sort()
+    nfrm = len(files)
 
     # Read radial extent and duration filtered index
     infile = open(outdir + '/hist/fr-frg.pkl', 'rb')
@@ -131,9 +138,15 @@ def plot2d():
     tarr = pickle.load(infile)
     infile.close()
 
-    # Iterate through these files
+    # Define some loop counting information
     dcount = 0
+    prntend = '\r'
+
+    # Iterate through these files
     for file in files:
+
+        # Define some timing
+        time0 = datetime.datetime.now()
         csfrm = re.split('fr-|\.', file)[1]
 
         # Read required data
@@ -220,6 +233,16 @@ def plot2d():
         ax.set_ylim([-1,1])
         pyplot.tight_layout()
         pyplot.savefig(frmdir + 'frm'+'%05.f'%dcount+'.png')
+
+        # Diagnostic readouts!
+        time1 = datetime.datetime.now()
+        if dcount == 0:
+            timedel = (time1 - time0)
+        else:
+            timedel = ((time1 - time0) + timedel) / 2
+        timeeta = (nfrm - (dcount+1)) * timedel + time1
+        if dcount == (nfrm - 1) : prntend = '\n'
+        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta), end=prntend)
 
         dcount = dcount + 1
 
