@@ -17,7 +17,7 @@ import os
 import glob
 import shutil
 import re
-from datetime import datetime
+import datetime
 import matplotlib
 from matplotlib import cm, colors
 from matplotlib import pyplot
