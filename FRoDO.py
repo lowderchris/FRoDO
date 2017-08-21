@@ -837,11 +837,11 @@ def erupt():
                 plap = np.where(xlap & ylap)[0]
                 if (len(plap) != 0) & (len(np.where(np.in1d(fr_elab, int(fpreg[ifpfr])))[0]) == 0):
                     fr_elab = np.append(fr_elab, int(fpreg[ifpfr]))
-                    fr_etarr = np.append(fr_etarr, csfrm)
                     if len(fpwhr[ifpfr][1]) > fpmaxarea:
                         fpmaxarea = len(fpwhr[ifpfr][1])
                         fpmaxarea_reg = int(fpreg[ifpfr])
             if (fpmaxarea_reg != 0):
+                fr_etarr = np.append(fr_etarr, dcount)
                 fr_efpt = np.append(fr_efpt, fpmaxarea_reg)
 
         # Diagnostic readouts!
@@ -1066,17 +1066,21 @@ def plot():
     # Merge the set of erupting structures with the list of confirmed flux ropes from radial extent
     fr_elab = fr_elab[np.in1d(fr_elab, fr_frg)]
     fr_nelab = fr_nelab[np.in1d(fr_nelab, fr_frg)]
+    fr_etarr = (fr_etarr[np.in1d(fr_efpt, fr_frg)]).astype(np.int)
     fr_efpt = fr_efpt[np.in1d(fr_efpt, fr_frg)]
 
     # Define time arrays
     netarr = []
     etarr = []
+    erptarr = []
     nearr = (fr_time[fr_nelab]).astype(np.int)
     earr = (fr_time[fr_elab]).astype(np.int)
     for i in np.arange(len(nearr)):
         netarr.append(tarr[nearr[i]])
     for i in np.arange(len(earr)):
         etarr.append(tarr[earr[i]])
+    for i in np.arange(len(fr_etarr)):
+        erptarr.append(tarr[fr_etarr[i]])
 
     # Compute the flux and helicity ejection rates
     tarr = np.array(tarr)
@@ -1162,6 +1166,20 @@ def plot():
     f.autofmt_xdate() # Optional toggle to sort out overlapping dates
     tight_layout()
     f.savefig('plt/fr-bfly-nshlcy'+fnapp+'.pdf')
+
+    # Butterfly digram of erupting flux ropes
+    f, (ax1) = subplots(figsize=fscale*np.array([7,2]))
+    sctne = ax1.scatter(erptarr, np.arcsin(fr_mlat[fr_efpt])*180./np.pi, c=fr_nhlcy[fr_efpt], cmap='RdBu_r', s=fr_area[fr_efpt]/gsize,edgecolors='None',vmin=-0.5e43,vmax=0.5e43, alpha=1.0)
+    cb = colorbar(sctne,ax=ax1, extend='both', label='Erupting H [Mx$^2$]', fraction=0.05)
+    ax1.set_ylim([-90,90])
+    ax1.set_axisbelow(True)
+    ax1.set_xlim([tarr[0], tarr[-1]])
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('Latitude')
+    ax1.grid()
+    #f.autofmt_xdate() # Optional toggle to sort out overlapping dates
+    tight_layout()
+    f.savefig('plt/fr-bfly-nshlcy-erupt'+fnapp+'.pdf')
 
     # A few hexbin scatter plots
 
