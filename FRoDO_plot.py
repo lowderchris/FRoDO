@@ -10,6 +10,9 @@ For all additional details, consult the aptly named README file.
 ## xvfb-run --server-args="-screen 0 1024x768x24" python3 -c "import FRoDO-plot; FRoDO-plot()"
 
 # Import libraries
+import matplotlib
+matplotlib.use('Agg')
+
 import os
 import glob
 import shutil
