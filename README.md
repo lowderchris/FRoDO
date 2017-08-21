@@ -20,15 +20,21 @@ Python 3 is supported for the use of this code.
 
 Several common libraries are required for this code, and can be installed (if not already) using pip:
 
-    $ pip install matplotlib scipy numpy
+    $ pip install numpy scipy matplotlib
 
 A few astronomy-specific libraries prove useful:
 
     $ pip install astropy sunpy
 
+A library for image processing
+
+    $ pip install scikit-image
+
 A library for better colormap management:
 
     $ pip install palettable
+
+See footnotes for a full list of dependency versions that have been tested and confirmed.
 
 ### Compiled dependencies
 
@@ -148,3 +154,31 @@ After generating a series of frames with these two routines, an animation can be
     >>> FRoDO_plot.animate(filename, frmrt=30)
 
 Here the filename can be specified, along with the output integer framerate.
+
+## Footnotes
+
+Note that for the above packages, the following versions have been tested and confirmed:
+
+- astropy (2.0.1)
+- cycler (0.10.0)
+- decorator (4.1.2)
+- matplotlib (2.0.2)
+- networkx (1.11)
+- numpy (1.13.1)
+- olefile (0.44)
+- palettable (3.0.0)
+- pandas (0.20.3)
+- Pillow (4.2.1)
+- pip (9.0.1)
+- py (1.4.34)
+- pyparsing (2.2.0)
+- pytest (3.2.1)
+- python-dateutil (2.6.1)
+- pytz (2017.2)
+- PyWavelets (0.5.2)
+- scikit-image (0.13.0)
+- scipy (0.19.1)
+- setuptools (36.2.7)
+- six (1.10.0)
+- sunpy (0.8.0)
+- wheel (0.29.0)
