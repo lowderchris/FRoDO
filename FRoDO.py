@@ -472,6 +472,15 @@ def FRoDO():
     pickle.dump(fr_frg, outfile)
     outfile.close()
 
+    # Output fieldline helicity threshold values
+    outfile = open(outdir + '/hist/ethreshs.pkl', 'wb')
+    pickle.dump(ethreshs, outfile)
+    outfile.close()
+
+    outfile = open(outdir + '/hist/sthreshs.pkl', 'wb')
+    pickle.dump(sthreshs, outfile)
+    outfile.close()
+
     # Output any completed time-series variables
     outfile = open(outdir + '/hist/h-fr-area.pkl', 'wb')
     pickle.dump(fr_area, outfile)
