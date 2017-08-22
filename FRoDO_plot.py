@@ -247,7 +247,7 @@ def plot2d():
         dcount = dcount + 1
 
     # Animate
-    FRoDO_plot.animate('plot2d')
+    animate('plot2d')
 
 def animate(filename, frmrt=10):
    os.system('ffmpeg -r ' + str(frmrt) + ' -i ' + frmdir + 'frm%05d.png -vcodec libx264 -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -q 0 ./plt/' + filename + '.mp4') 
