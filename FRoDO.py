@@ -75,7 +75,7 @@ def prep():
     for file in files:
 
         # Extract the file frame string
-        frmstr = re.split(bdatprefix+'|\.', file)[1]
+        frmstr = re.split(bdatprefix+'|\.', file)[-2]
 
         # Compute and store magnetic vector potential
         compA.compa(frmstr, datdir, bdatprefix, adatprefix)
@@ -151,7 +151,7 @@ def FRoDO():
 
         # Define some timing
         time0 = datetime.datetime.now()
-        csfrm = re.split(bdatprefix+'|\.', cfrm)[1]
+        csfrm = re.split(bdatprefix+'|\.', cfrm)[-2]
 
         # Read magnetic field data into memory
         b = b_sim_netcdf.SphB_sim(datdir + bdatprefix + csfrm + '.nc', datdir + adatprefix + csfrm + '.nc', 128,128,128)
@@ -595,7 +595,7 @@ def erupt():
 
         # Define some timing
         time0 = datetime.datetime.now()
-        csfrm = re.split(bdatprefix+'|\.', cfrm)[1]
+        csfrm = re.split(bdatprefix+'|\.', cfrm)[-2]
 
         # Read original data into memory
         b = b_sim_netcdf.SphB_sim(datdir + bdatprefix + csfrm + '.nc', datdir + adatprefix + csfrm + '.nc', 128,128,128)
