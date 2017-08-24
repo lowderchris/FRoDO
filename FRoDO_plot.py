@@ -64,46 +64,172 @@ def plot3d():
 
     print('I\'m still under development... check back later')
 
-#    # Import 3D plotting libraries
-#    from mayavi import mlab
-#
-#    # Remove any existing files
-#    if os.path.exists(frmdir) : shutil.rmtree(frmdir)
-#
-#    # Create a frame output directory
-#    if not os.path.exists(frmdir) : os.mkdir(frmdir)
-#
-#    # Generate a list of files for animating
-#    files = glob.glob(outdir + 'fr-'+'*.nc')
-#    files.sort()
-#
-#    # Read radial extent and duration filtered index
-#    infile = open(outdir + '/hist/fr-frg.pkl', 'rb')
-#    fr_frg = pickle.load(infile)
-#    infile.close()
-#    fr_frg = fr_frg.astype(np.int)
-#
-#    # Iterate through these files
-#    for file in files:
-#        csfrm = re.split('fr-|\.', file)[1]
-#
-#        # Read required data
-#        b = b_sim_netcdf.SphB_sim(datdir+bdatprefix+csfrm+'.nc', datdir+adatprefix+csfrm+'.nc', 128, 128, 128)
-#        f = netcdf.netcdf_file(outdir + 'fr-'+csfrm+'.nc', 'r')
-#        frmap = f.variables['frmap'][:,:].copy()
-#        br0 = f.variables['br0'][:,:].copy()
-#        frhlcy = f.variables['frhlcy'][:,:].copy()
-#        lat = f.variables['lat'][:].copy()
-#        lon = f.variables['lon'][:].copy()
-#        f.close()
-#
-#        # Create array of filtered flux rope footprints to trace
-#
-#        # Re-trace these fieldlines
-#
-#        # Setup the scene and plot fieldlines
-#
-#        # Animation additional frames if required
+    # Import 3D plotting libraries
+    from mayavi import mlab
+
+    # Remove any existing files
+    if os.path.exists(frmdir) : shutil.rmtree(frmdir)
+
+    # Create a frame output directory
+    if not os.path.exists(frmdir) : os.mkdir(frmdir)
+
+    # Generate a list of files for animating
+    files = glob.glob(outdir + 'fr-'+'*.nc')
+    files.sort()
+
+    # Read radial extent and duration filtered index
+    infile = open(outdir + '/hist/fr-frg.pkl', 'rb')
+    fr_frg = pickle.load(infile)
+    infile.close()
+    fr_frg = fr_frg.astype(np.int)
+
+    # Read original timing data
+    infile = open(outdir + '/hist/h-fr-tarr.pkl', 'rb')
+    tarr = pickle.load(infile)
+    infile.close()
+
+    # Define some loop counting information
+    dcount = 0
+    dvcount = 0
+    prntend = '\r'
+
+    # Iterate through these files
+    for file in files:
+        csfrm = re.split('fr-|\.', file)[1]
+
+        # Read required data
+        b = b_sim_netcdf.SphB_sim(datdir+bdatprefix+csfrm+'.nc', datdir+adatprefix+csfrm+'.nc', 128, 128, 128)
+        f = netcdf.netcdf_file(outdir + 'fr-'+csfrm+'.nc', 'r')
+        frmap = f.variables['frmap'][:,:].copy()
+        br0 = f.variables['br0'][:,:].copy()
+        frhlcy = f.variables['frhlcy'][:,:].copy()
+        lat = f.variables['lat'][:].copy()
+        lon = f.variables['lon'][:].copy()
+        f.close()
+
+        # Identify filtered flux rope region footpoint coordinates
+        fpth = np.array([])
+        fpph = np.array([])
+        for reg in np.unique(frmap[frmap != 0]):
+            if np.in1d(reg, fr_frg):
+                frwhr = np.where(frmap == reg)
+                fpth = np.append(fpth, lat[frwhr[0]])
+                fpph = np.append(fpph, lon[frwhr[1]])
+        fpr = np.ones(len(fpth))
+        fpth = np.arcsin(-1 * fpth) + pi/2
+
+        # Trace these flux rope fieldlines for plotting
+        if len(fpr) != 0:
+            fflhlcy, ffl = b.fieldlines_hlcy(fpr, fpth, fpph)
+        else:
+            fflhlcy = np.array([])
+            ffl = np.array([])
+
+        # Apply a final helicity filter
+        havg = abs(frhlcy).mean()
+        sthresh = (havg / 0.26648107322354925) * ref_sthresh
+        ethresh = (havg / 0.26648107322354925) * ref_ethresh
+        fl = []
+        flhlcy = np.array([])
+        for ifl in np.arange(len(fflhlcy)):
+            if abs(fflhlcy[ifl]) > ethresh:
+                fl.append(ffl[ifl])
+                flhlcy = np.append(flhlcy, fflhlcy[ifl])
+        del ffl
+        del fflhlcy
+
+        # Setup the scene
+        sz = (1024,1024)
+        if pltlght:
+            bgcol = (1,1,1)
+            fgcol = (0,0,0)
+        else:
+            bgcol = (0,0,0)
+            fgcol = (1,1,1)
+        if dcount != 0:
+                fig.scene.disable_render = True
+                mlab.clf()
+                mlab.close(all=True)
+        fig = mlab.figure(1, bgcolor=bgcol, fgcolor=fgcol, size=sz)
+        fig.scene.disable_render = False
+        mlab.view(90, 70, 9, (0,0,0))
+        fig.scene.light_manager.light_mode = 'vtk'
+
+        # Create a sun
+        r = 1.0
+        pi = np.pi
+        cos = np.cos
+        sin = np.sin
+        theta, phi = np.mgrid[1:-1:180j, 0:2 * pi:360j]
+        x = r * np.sin(np.arcsin(theta)+pi/2) * np.cos(phi)
+        y = r * np.sin(np.arcsin(theta)+pi/2) * np.sin(phi)
+        z = r * np.cos(np.arcsin(theta)+pi/2)
+
+        sol = mlab.mesh(x, y, z, scalars=np.clip(br0,-10,10), colormap='Greys')
+        sol.module_manager.scalar_lut_manager.reverse_lut = True
+
+        frnorm = matplotlib.colors.Normalize(vmin=-3,vmax=3)
+        frsmap = matplotlib.cm.ScalarMappable(norm=frnorm, cmap='RdBu_r')
+
+        cval_hlcy = np.array([abs(flhlcy.min()),abs(flhlcy.max())]).min()
+        cmap_hlcy = cm.get_cmap('RdBu_r')
+        norm_hlcy = matplotlib.colors.Normalize(vmin=-cval_hlcy, vmax=cval_hlcy)
+        smap_hlcy = matplotlib.cm.ScalarMappable(norm=norm_hlcy, cmap=cmap_hlcy)
+
+        # Trace a set of background fieldlines
+        nph = 12
+        nth = 12
+        r = 2.5
+        fth1 = np.linspace(0.05*np.pi, 0.95*np.pi, nth)
+        fr1 = np.array([r])
+        fph1 = np.linspace(0, 2*np.pi, nph, endpoint=False)
+        fr0, fth0, fph0 = np.meshgrid(fr1, fth1, fph1)
+        fr0 = fr0.flatten()
+        fth0 = fth0.flatten()
+        fph0 = fph0.flatten()
+        ahlcy, afl = b.fieldlines_hlcy(fr0, fth0, fph0)
+        for f in np.arange(len(afl)):
+                if np.mod(f,50) == 0:
+                    print('Plotting background fieldline ' + '%05.f'%f + '/' + '%05.f'%len(afl))
+                slen = np.sqrt((afl[f][0] * sin(afl[f][1]) * cos(afl[f][2]))**2 +            (afl[f][0] * sin(afl[f][1]) * sin(afl[f][2]))**2 + (afl[f][0] * cos(afl[f][1]))**2)
+                tfl = mlab.plot3d(afl[f][0] * sin(afl[f][1]) * cos(afl[f][2]), afl[f][0] *   sin(afl[f][1]) * sin(afl[f][2]), afl[f][0] * cos(afl[f][1]), slen, tube_radius=None,         colormap='YlGn', vmin=1.0, vmax=2.5, reset_zoom=False, opacity=flalpha)
+                tfl.module_manager.scalar_lut_manager.reverse_lut = True
+
+        fig.scene.disable_render = True
+
+        # Trace flux rope fieldlines
+        fr_count = np.int64(0)
+        for i in np.arange(len(fl)):
+                flcol = frsmap.to_rgba(flhlcy[i])
+                if np.mod(fr_count,500) == 0:
+                    print('Plotting flux rope fieldline ' + '%05.f'%fr_count + '/' + '%05.f'%len(fl))
+                mlab.plot3d(fl[i][0] * sin(fl[i][1]) * cos(fl[i][2]), fl[i][0] *     sin(fl[i][1]) * sin(fl[i][2]), fl[i][0] * cos(fl[i][1]), tube_radius=None, color = flcol[0:3], reset_zoom=False, opacity=flalpha)
+                fr_count = fr_count + 1
+
+        fig.scene.disable_render = False
+        if pltanno:
+            mlab.text(0.01,0.01,csfrm + ' ' + tarr[dcount].strftime('%Y-%m-%d %H:%M'),opacity=0.5,width=0.07)
+
+        # Save output frame(s) and render additional frames
+        for iv in np.arange(1):
+            mlab.view(vph[dvcount],vth[dvcount],vr[dvcount], (0,0,0))
+            mlab.savefig(datdir + 'scratch/'+frmdir+'frm'+'%05.f'%dvcount+'.png')
+            dvcount = dvcount + 1
+
+        # Diagnostic readouts!
+        time1 = datetime.datetime.now()
+        if dcount == 0:
+            timedel = (time1 - time0)
+        else:
+            timedel = ((time1 - time0) + timedel) / 2
+        timeeta = (nfrm - (dcount+1)) * timedel + time1
+        if dcount == (nfrm - 1) : prntend = '\n'
+        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta), end=prntend)
+
+        dcount = dcount + 1
+
+    # Animate
+    animate('plot3d')
 
 def plot2d():
     '''
