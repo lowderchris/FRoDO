@@ -439,6 +439,8 @@ def FRoDO():
         out_lon = outfile.createVariable('lon', np.float32, ('lon',))
         out_lon[:] = frlon
 
+        outfile.close()
+
         # Diagnostic readouts!
         time1 = datetime.datetime.now()
         if dcount == 0:
@@ -467,64 +469,71 @@ def FRoDO():
     # Merge these into a single filtered index
     fr_frg = np.intersect1d(fr_rfrg, fr_dfrg)
 
-    # Save this filtered list
-    outfile = open(outdir + '/hist/fr-frg.pkl', 'wb')
-    pickle.dump(fr_frg, outfile)
-    outfile.close()
+    # Begin output to file
 
-    # Output fieldline helicity threshold values
-    outfile = open(outdir + '/hist/ethreshs.pkl', 'wb')
-    pickle.dump(ethreshs, outfile)
-    outfile.close()
+    # Output compatible data to a single netcdf archive
+    outfile = netcdf.netcdf_file(outdir + 'hist/fr-hist.nc', 'w')
+    outfile.history = 'FRoDO flux rope histories'
+    outfile.createDimension('frnum', len(fr_time))
+    outfile.createDimension('frgnum', len(fr_frg))
+    outfile.createDimension('time', len(bfrm_list))
 
-    outfile = open(outdir + '/hist/sthreshs.pkl', 'wb')
-    pickle.dump(sthreshs, outfile)
+    out_fr_frg = outfile.createVariable('fr_frg', np.int32, ('frgnum',))
+    out_fr_frg[:] = fr_frg
+    out_fr_frg.units = 'Filtered list of flux rope identifiers'
+
+    out_ethreshs = outfile.createVariable('ethreshs', np.double, ('time',))
+    out_ethreshs[:] = ethreshs
+    out_ethreshs.units = 'Detection extent threshold values'
+
+    out_sthreshs = outfile.createVariable('sthreshs', np.double, ('time',))
+    out_sthreshs[:] = sthreshs
+    out_sthreshs.units = 'Detection core threshold values'
+
+    out_fr_area = outfile.createVariable('fr_area', np.double, ('frnum',))
+    out_fr_area[:] = fr_area
+    out_fr_area.units = 'Footprint area (cm^2)'
+
+    out_fr_time = outfile.createVariable('fr_time', np.double, ('frnum',))
+    out_fr_time[:] = fr_time
+    out_fr_time.units = 'Flux rope timing frame ()'
+
+    out_fr_dur = outfile.createVariable('fr_dur', np.double, ('frnum',))
+    out_fr_dur[:] = fr_dur
+    out_fr_dur.units = 'Duration (days)'
+
+    out_fr_mhlcy = outfile.createVariable('fr_mhlcy', np.double, ('frnum',))
+    out_fr_mhlcy[:] = fr_mhlcy
+    out_fr_mhlcy.units = 'Footprint mean helicity (Mx^2)'
+
+    out_fr_nhlcy = outfile.createVariable('fr_nhlcy', np.double, ('frnum',))
+    out_fr_nhlcy[:] = fr_nhlcy
+    out_fr_nhlcy.units = 'Footprint net helicity magnitude (Mx^2)'
+
+    out_fr_sflux = outfile.createVariable('fr_sflux', np.double, ('frnum',))
+    out_fr_sflux[:] = fr_sflux
+    out_fr_sflux.units = 'Footprint signed magnetic flux (Mx)'
+
+    out_fr_uflux = outfile.createVariable('fr_uflux', np.double, ('frnum',))
+    out_fr_uflux[:] = fr_uflux
+    out_fr_uflux.units = 'Footprint unsigned magnetic flux (Mx)'
+
+    out_fr_rext = outfile.createVariable('fr_rext', np.double, ('frnum',))
+    out_fr_rext[:] = fr_rext
+    out_fr_rext.units = 'Mean radial extent (R_sun)'
+
+    out_fr_mrext = outfile.createVariable('fr_mrext', np.double, ('frnum',))
+    out_fr_mrext[:] = fr_mrext
+    out_fr_mrext.units = 'Maximum radial extent (R_sun)'
+
+    out_fr_mlat = outfile.createVariable('fr_mlat', np.double, ('frnum',))
+    out_fr_mlat[:] = fr_mlat
+    out_fr_mlat.units = ''
+
     outfile.close()
 
     # Output any completed time-series variables
-    outfile = open(outdir + '/hist/h-fr-area.pkl', 'wb')
-    pickle.dump(fr_area, outfile)
-    outfile.close()
-
-    outfile = open(outdir + '/hist/h-fr-time.pkl', 'wb')
-    pickle.dump(fr_time, outfile)
-    outfile.close()
-
-    outfile = open(outdir + '/hist/h-fr-dur.pkl', 'wb')
-    pickle.dump(fr_dur, outfile)
-    outfile.close()
-
-    outfile = open(outdir + '/hist/h-fr-mhlcy.pkl', 'wb')
-    pickle.dump(fr_mhlcy, outfile)
-    outfile.close()
-
-    outfile = open(outdir + '/hist/h-fr-nhlcy.pkl', 'wb')
-    pickle.dump(fr_nhlcy, outfile)
-    outfile.close()
-
-    outfile = open(outdir + '/hist/h-fr-sflux.pkl', 'wb')
-    pickle.dump(fr_sflux, outfile)
-    outfile.close()
-
-    outfile = open(outdir + '/hist/h-fr-uflux.pkl', 'wb')
-    pickle.dump(fr_uflux, outfile)
-    outfile.close()
-
-    outfile = open(outdir + '/hist/h-fr-rext.pkl', 'wb')
-    pickle.dump(fr_rext, outfile)
-    outfile.close()
-
-    outfile = open(outdir + '/hist/h-fr-mrext.pkl', 'wb')
-    pickle.dump(fr_mrext, outfile)
-    outfile.close()
-
-    outfile = open(outdir + '/hist/h-fr-mlat.pkl', 'wb')
-    pickle.dump(fr_mlat, outfile)
-    outfile.close()
-
-    outfile = open(outdir + '/hist/h-fr-tarr.pkl', 'wb')
-    pickle.dump(tarr, outfile)
-    outfile.close()
+    np.save(outdir + '/hist/fr-tarr.npy', tarr)
 
     outfile = open(outdir + '/hist/h-frh-area.pkl', 'wb')
     pickle.dump(frh_area, outfile)
@@ -861,16 +870,22 @@ def erupt():
         dcount = dcount + 1
 
     # Save this data to file
-    outfile = open(outdir + 'hist/fr-elab.pkl', 'wb')
-    pickle.dump(fr_elab, outfile)
-    outfile.close()
+    outfile = netcdf.netcdf_file(outdir + 'hist/fr-elab.nc', 'w')
+    outfile.history = 'FRoDO flux rope eruption labels'
+    outfile.createDimension('frenum', len(fr_elab))
 
-    outfile = open(outdir + 'hist/fr-efpt.pkl', 'wb')
-    pickle.dump(fr_efpt, outfile)
-    outfile.close()
+    out_fr_elab = outfile.createVariable('fr_elab', np.int32, ('frenum',))
+    out_fr_elab[:] = fr_elab
+    out_fr_elab.units = 'Labels of erupting flux ropes ()'
 
-    outfile = open(outdir + 'hist/fr-etarr.pkl', 'wb')
-    pickle.dump(fr_etarr, outfile)
+    out_fr_efpt = outfile.createVariable('fr_efpt', np.int32, ('frenum',))
+    out_fr_efpt[:] = fr_efpt
+    out_fr_efpt.units = 'Labels of erupting flux rope footprints ()'
+
+    out_fr_etarr = outfile.createVariable('fr_etarr', np.int32, ('frenum',))
+    out_fr_etarr[:] = fr_etarr
+    out_fr_etarr.units = 'Erupting flux rope time references ()'
+
     outfile.close()
 
 def plot():
@@ -960,49 +975,23 @@ def plot():
         return ax1, aux_ax
 
     # Read time histories
-    infile = open(outdir + '/hist/h-fr-area.pkl', 'rb')
-    fr_area = pickle.load(infile)
-    infile.close()
+    d = netcdf.netcdf_file(outdir + 'hist/fr-hist.nc', 'r')
 
-    infile = open(outdir + '/hist/h-fr-time.pkl', 'rb')
-    fr_time = pickle.load(infile)
-    infile.close()
+    fr_frg = d.variables['fr_frg'][:].copy()
+    fr_area = d.variables['fr_area'][:].copy()
+    fr_time = d.variables['fr_time'][:].copy()
+    fr_dur = d.variables['fr_dur'][:].copy()
+    fr_mhlcy = d.variables['fr_mhlcy'][:].copy()
+    fr_nhlcy = d.variables['fr_nhlcy'][:].copy()
+    fr_sflux = d.variables['fr_sflux'][:].copy()
+    fr_uflux = d.variables['fr_uflux'][:].copy()
+    fr_rext = d.variables['fr_rext'][:].copy()
+    fr_mrext = d.variables['fr_mrext'][:].copy()
+    fr_mlat = d.variables['fr_mlat'][:].copy()
 
-    infile = open(outdir + '/hist/h-fr-dur.pkl', 'rb')
-    fr_dur = pickle.load(infile)
-    infile.close()
+    d.close()
 
-    infile = open(outdir + '/hist/h-fr-mhlcy.pkl', 'rb')
-    fr_mhlcy = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-nhlcy.pkl', 'rb')
-    fr_nhlcy = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-sflux.pkl', 'rb')
-    fr_sflux = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-uflux.pkl', 'rb')
-    fr_uflux = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-rext.pkl', 'rb')
-    fr_rext = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-mrext.pkl', 'rb')
-    fr_mrext = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-mlat.pkl', 'rb')
-    fr_mlat = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-tarr.pkl', 'rb')
-    tarr = pickle.load(infile)
-    infile.close()
+    tarr = np.load(outdir + '/hist/fr-tarr.npy')
 
     infile = open(outdir + '/hist/h-frh-area.pkl', 'rb')
     frh_area = pickle.load(infile)
@@ -1037,24 +1026,16 @@ def plot():
     infile.close()
 
     # Read eruption labels
-    infile = open(outdir + '/hist/fr-efpt.pkl', 'rb')
-    fr_efpt = pickle.load(infile)
-    infile.close()
-    fr_efpt = fr_efpt.astype(np.int)
 
-    infile = open(outdir + '/hist/fr-elab.pkl', 'rb')
-    fr_elab = pickle.load(infile)
-    infile.close()
-    fr_elab = fr_elab.astype(np.int)
+    d = netcdf.netcdf_file(outdir + '/hist/fr-elab.nc', 'r')
+ 
+    fr_elab = d.variables['fr_elab'][:].copy()
+    fr_efpt = d.variables['fr_efpt'][:].copy()
+    fr_etarr = d.variables['fr_etarr'][:].copy()
 
-    infile = open(outdir + '/hist/fr-etarr.pkl', 'rb')
-    fr_etarr = pickle.load(infile)
-    infile.close()
+    d.close()
 
-    # Read radial extent and duration filtered index
-    infile = open(outdir + '/hist/fr-frg.pkl', 'rb')
-    fr_frg = pickle.load(infile)
-    infile.close()
+    # Convert any variables as required
     fr_frg = fr_frg.astype(np.int)
 
     ## Create an index of non-erupting flux ropes
@@ -1346,69 +1327,34 @@ def stats(tex=False):
     if os.path.exists(outdir + 'stats-tex.tex') : os.remove(outdir + 'stats-tex.tex')
 
     # Read data
-    infile = open(outdir + '/hist/h-fr-area.pkl', 'rb')
-    fr_area = pickle.load(infile)
-    infile.close()
+    d = netcdf.netcdf_file(outdir + 'hist/fr-hist.nc', 'r')
 
-    infile = open(outdir + '/hist/h-fr-time.pkl', 'rb')
-    fr_time = pickle.load(infile)
-    infile.close()
+    fr_frg = d.variables['fr_frg'][:].copy()
+    fr_area = d.variables['fr_area'][:].copy()
+    fr_time = d.variables['fr_time'][:].copy()
+    fr_dur = d.variables['fr_dur'][:].copy()
+    fr_mhlcy = d.variables['fr_mhlcy'][:].copy()
+    fr_nhlcy = d.variables['fr_nhlcy'][:].copy()
+    fr_sflux = d.variables['fr_sflux'][:].copy()
+    fr_uflux = d.variables['fr_uflux'][:].copy()
+    fr_rext = d.variables['fr_rext'][:].copy()
+    fr_mrext = d.variables['fr_mrext'][:].copy()
+    fr_mlat = d.variables['fr_mlat'][:].copy()
 
-    infile = open(outdir + '/hist/h-fr-dur.pkl', 'rb')
-    fr_dur = pickle.load(infile)
-    infile.close()
+    d.close()
 
-    infile = open(outdir + '/hist/h-fr-mhlcy.pkl', 'rb')
-    fr_mhlcy = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-nhlcy.pkl', 'rb')
-    fr_nhlcy = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-sflux.pkl', 'rb')
-    fr_sflux = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-uflux.pkl', 'rb')
-    fr_uflux = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-rext.pkl', 'rb')
-    fr_rext = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-mrext.pkl', 'rb')
-    fr_mrext = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-mlat.pkl', 'rb')
-    fr_mlat = pickle.load(infile)
-    infile.close()
-
-    infile = open(outdir + '/hist/h-fr-tarr.pkl', 'rb')
-    tarr = pickle.load(infile)
-    infile.close()
+    tarr = np.load(outdir + '/hist/fr-tarr.npy')
 
     # Read eruption labels
-    infile = open(outdir + '/hist/fr-efpt.pkl', 'rb')
-    fr_efpt = pickle.load(infile)
-    infile.close()
-    fr_efpt = fr_efpt.astype(np.int)
+    d = netcdf.netcdf_file(outdir + 'hist/fr-elab.nc', 'r')
+ 
+    fr_elab = d.variables['fr_elab'][:].copy()
+    fr_efpt = d.variables['fr_efpt'][:].copy()
+    fr_etarr = d.variables['fr_etarr'][:].copy()
 
-    infile = open(outdir + '/hist/fr-elab.pkl', 'rb')
-    fr_elab = pickle.load(infile)
-    infile.close()
-    fr_elab = fr_elab.astype(np.int)
+    d.close()
 
-    infile = open(outdir + '/hist/fr-etarr.pkl', 'rb')
-    fr_etarr = pickle.load(infile)
-    infile.close()
-
-    # Read radial extent and duration filtered index
-    infile = open(outdir + '/hist/fr-frg.pkl', 'rb')
-    fr_frg = pickle.load(infile)
-    infile.close()
+    # Convert any variables as required
     fr_frg = fr_frg.astype(np.int)
 
     ## Create an index of non-erupting flux ropes
