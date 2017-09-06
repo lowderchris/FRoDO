@@ -86,7 +86,7 @@ This will create a series of additional netCDF files to store the magnetic vecto
 
     >>> FRoDO.FRoDO()
 
-The resulting output files are saved to the specified output directory. Output files are marked by 'fr-ddddd_hh.nc', and contain flux rope footprint locations, along with other associated data. Having stepped through all of the provided data, tracking is performed on detected flux rope footprints, with associated time histories stored in the subdirectory 'hist' of the specified output directory. These python Pickle files contain the lists of arrays storing the time history for each unique flux rope structure. The labeling provided in the array of footprints in the 'fr-ddddd_hh.nc' corresponds to the element of these lists containing the associated history.
+The resulting output files are saved to the specified output directory. Output files are marked with the prefix 'fr-', and contain flux rope footprint locations, along with other associated data. Having stepped through all of the provided data, tracking is performed on detected flux rope footprints, with associated time histories stored in the subdirectory 'hist' of the specified output directory. Flux rope quantities are stored within the fr-hist.nc file, with full histories stored within .pkl files. The labeling provided in the array of footprints corresponds to the element of these lists containing the associated history.
 
 Note that all large-helicity structures are tracked and stored here in this initial tracking. To filter out tall / brief features that are not quite so flux-ropish, the array fr-frg is stored in the output history directory.
 
