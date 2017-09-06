@@ -78,15 +78,13 @@ def plot3d():
     files.sort()
 
     # Read radial extent and duration filtered index
-    infile = open(outdir + '/hist/fr-frg.pkl', 'rb')
-    fr_frg = pickle.load(infile)
-    infile.close()
+    d = netcdf.netcdf_file(outdir + 'hist/fr-hist.nc', 'r')
+    fr_frg = d.variables['fr_frg'][:].copy()
+    d.close()
     fr_frg = fr_frg.astype(np.int)
 
     # Read original timing data
-    infile = open(outdir + '/hist/h-fr-tarr.pkl', 'rb')
-    tarr = pickle.load(infile)
-    infile.close()
+    tarr = np.load(outdir + '/hist/fr-tarr.npy')
 
     # Define some loop counting information
     dcount = 0
@@ -254,15 +252,13 @@ def plot2d():
     nfrm = len(files)
 
     # Read radial extent and duration filtered index
-    infile = open(outdir + '/hist/fr-frg.pkl', 'rb')
-    fr_frg = pickle.load(infile)
-    infile.close()
+    d = netcdf.netcdf_file(outdir + 'hist/fr-hist.nc', 'r')
+    fr_frg = d.variables['fr_frg'][:].copy()
+    d.close()
     fr_frg = fr_frg.astype(np.int)
 
     # Read original timing data
-    infile = open(outdir + '/hist/h-fr-tarr.pkl', 'rb')
-    tarr = pickle.load(infile)
-    infile.close()
+    tarr = np.load(outdir + '/hist/fr-tarr.npy')
 
     # Define some loop counting information
     dcount = 0
