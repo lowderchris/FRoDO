@@ -4,8 +4,12 @@ import matplotlib.cm as cm
 from matplotlib.mlab import griddata
 import bisect
 import sys
-from tracer import tracer
-#import tracerpy
+
+if sys.version[0] == '2':
+    sys.path.append('./tracer/')
+    import tracer
+else:
+    from tracer import tracer
 
 class SphB:
       """General class describing a magnetic field in spherical shell.

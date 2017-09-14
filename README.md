@@ -34,6 +34,10 @@ A library for better colormap management:
 
     $ pip install palettable
 
+A library for reading configuration files:
+
+    $ pip install configparser
+
 See footnotes for a full list of dependency versions that have been tested and confirmed.
 
 ### Compiled dependencies
@@ -57,6 +61,8 @@ Note that this requires specification of the location of netCDF libraries on the
 For a sample Macintosh machine (with Homebrew netCDF), these should be located with:
 
     -I/usr/local/include/ -L/usr/lib/libnetcdff.so.5 -lnetcdff
+
+Please note that there may be issues with compatibility between Python 2 and Python 3 usage with certain versions of f2py.
 
 ## Data
 
@@ -132,7 +138,7 @@ The two dimensional plotting routine is much simpler in scope, and relies only o
 
 ### Usage
 
-Before starting, a few specified parameters must be set under the plot3d section of config.cfg. These parameters specify a temporary output frame directory, viewing angles, and other plotting toggles. To begin with plotting, enter a Python 3 environment and import the plot3d libraries,
+Before starting, a few specified parameters must be set under the plot3d section of config.cfg. These parameters specify a temporary output frame directory, viewing angles, and other plotting toggles. To begin with plotting, enter a Python environment and import the plot3d libraries,
 
     $ python3
     >>> import FRoDO_plot
@@ -147,7 +153,7 @@ To run through the three-dimensional animation process, execute this with the co
 
     >>> FRoDO_plot.plot3d()
 
-(Note that the moment that this routine is disabled while under development and while sorting out mayavi installation issues). This will render individual frames, outputting data to the specified output frame directory. On completion, these frames will be animated into the file plt/plot3d.mp4
+(Note that the moment that this routine is most easily compatible with the Python 2 version of the Mayavi libraries.). This will render individual frames, outputting data to the specified output frame directory. On completion, these frames will be animated into the file plt/plot3d.mp4
 
 After generating a series of frames with these two routines, an animation can be created manually using,
 

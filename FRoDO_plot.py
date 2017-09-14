@@ -20,13 +20,8 @@ import re
 import datetime
 import matplotlib
 from matplotlib import cm, colors
-from matplotlib import pyplot
-import pickle
 from scipy.io import netcdf
 import numpy as np
-from numpy import pi
-import palettable
-import b_sim_netcdf
 
 import configparser
 
@@ -62,10 +57,10 @@ def plot3d():
     Uses specified plotting parameters to animate a three-dimension visualization of magnetic flux rope evolution.
     '''
 
-    print('I\'m still under development... check back later')
-
     # Import 3D plotting libraries
     from mayavi import mlab
+    import palettable
+    import b_sim_netcdf
 
     # Remove any existing files
     if os.path.exists(frmdir) : shutil.rmtree(frmdir)
@@ -76,12 +71,14 @@ def plot3d():
     # Generate a list of files for animating
     files = glob.glob(outdir + 'fr-'+'*.nc')
     files.sort()
+    nfrm = len(files)
 
     # Read radial extent and duration filtered index
     d = netcdf.netcdf_file(outdir + 'hist/fr-hist.nc', 'r')
     fr_frg = d.variables['fr_frg'][:].copy()
     d.close()
     fr_frg = fr_frg.astype(np.int)
+    d.close()
 
     # Read original timing data
     tarr = np.load(outdir + '/hist/fr-tarr.npy')
@@ -93,6 +90,7 @@ def plot3d():
 
     # Iterate through these files
     for file in files:
+        time0 = datetime.datetime.now()
         csfrm = re.split('fr-|\.', file)[1]
 
         # Read required data
@@ -109,12 +107,17 @@ def plot3d():
         fpth = np.array([])
         fpph = np.array([])
         for reg in np.unique(frmap[frmap != 0]):
-            if np.in1d(reg, fr_frg):
+            if len(fr_frg) == 0:
                 frwhr = np.where(frmap == reg)
                 fpth = np.append(fpth, lat[frwhr[0]])
                 fpph = np.append(fpph, lon[frwhr[1]])
+            else:
+                if np.in1d(reg, fr_frg):
+                    frwhr = np.where(frmap == reg)
+                    fpth = np.append(fpth, lat[frwhr[0]])
+                    fpph = np.append(fpph, lon[frwhr[1]])
         fpr = np.ones(len(fpth))
-        fpth = np.arcsin(-1 * fpth) + pi/2
+        fpth = np.arcsin(-1 * fpth) + np.pi/2
 
         # Trace these flux rope fieldlines for plotting
         if len(fpr) != 0:
@@ -130,7 +133,7 @@ def plot3d():
         fl = []
         flhlcy = np.array([])
         for ifl in np.arange(len(fflhlcy)):
-            if abs(fflhlcy[ifl]) > ethresh:
+            if abs(fflhlcy[ifl]) > sthresh:
                 fl.append(ffl[ifl])
                 flhlcy = np.append(flhlcy, fflhlcy[ifl])
         del ffl
@@ -150,7 +153,7 @@ def plot3d():
                 mlab.close(all=True)
         fig = mlab.figure(1, bgcolor=bgcol, fgcolor=fgcol, size=sz)
         fig.scene.disable_render = False
-        mlab.view(90, 70, 9, (0,0,0))
+        mlab.view(80, 70, 9, (0,0,0))
         fig.scene.light_manager.light_mode = 'vtk'
 
         # Create a sun
@@ -158,17 +161,17 @@ def plot3d():
         pi = np.pi
         cos = np.cos
         sin = np.sin
-        theta, phi = np.mgrid[1:-1:180j, 0:2 * pi:360j]
-        x = r * np.sin(np.arcsin(theta)+pi/2) * np.cos(phi)
-        y = r * np.sin(np.arcsin(theta)+pi/2) * np.sin(phi)
-        z = r * np.cos(np.arcsin(theta)+pi/2)
+        theta, phi = np.mgrid[1:-1:180j, 0:2 * np.pi:360j]
+        x = r * np.sin(np.arcsin(theta)+np.pi/2) * np.cos(phi)
+        y = r * np.sin(np.arcsin(theta)+np.pi/2) * np.sin(phi)
+        z = r * np.cos(np.arcsin(theta)+np.pi/2)
 
         sol = mlab.mesh(x, y, z, scalars=np.clip(br0,-10,10), colormap='Greys')
         sol.module_manager.scalar_lut_manager.reverse_lut = True
 
         frnorm = matplotlib.colors.Normalize(vmin=-3,vmax=3)
         frsmap = matplotlib.cm.ScalarMappable(norm=frnorm, cmap='RdBu_r')
-
+        print(flhlcy)
         cval_hlcy = np.array([abs(flhlcy.min()),abs(flhlcy.max())]).min()
         cmap_hlcy = cm.get_cmap('RdBu_r')
         norm_hlcy = matplotlib.colors.Normalize(vmin=-cval_hlcy, vmax=cval_hlcy)
@@ -190,7 +193,7 @@ def plot3d():
                 if np.mod(f,50) == 0:
                     print('Plotting background fieldline ' + '%05.f'%f + '/' + '%05.f'%len(afl))
                 slen = np.sqrt((afl[f][0] * sin(afl[f][1]) * cos(afl[f][2]))**2 +            (afl[f][0] * sin(afl[f][1]) * sin(afl[f][2]))**2 + (afl[f][0] * cos(afl[f][1]))**2)
-                tfl = mlab.plot3d(afl[f][0] * sin(afl[f][1]) * cos(afl[f][2]), afl[f][0] *   sin(afl[f][1]) * sin(afl[f][2]), afl[f][0] * cos(afl[f][1]), slen, tube_radius=None,         colormap='YlGn', vmin=1.0, vmax=2.5, reset_zoom=False, opacity=flalpha)
+                tfl = mlab.plot3d(afl[f][0] * sin(afl[f][1]) * cos(afl[f][2]), afl[f][0] *   sin(afl[f][1]) * sin(afl[f][2]), afl[f][0] * cos(afl[f][1]), slen, tube_radius=None,         colormap='YlGn', vmin=1.0, vmax=2.5, reset_zoom=False, opacity=flalph)
                 tfl.module_manager.scalar_lut_manager.reverse_lut = True
 
         fig.scene.disable_render = True
@@ -201,7 +204,7 @@ def plot3d():
                 flcol = frsmap.to_rgba(flhlcy[i])
                 if np.mod(fr_count,500) == 0:
                     print('Plotting flux rope fieldline ' + '%05.f'%fr_count + '/' + '%05.f'%len(fl))
-                mlab.plot3d(fl[i][0] * sin(fl[i][1]) * cos(fl[i][2]), fl[i][0] *     sin(fl[i][1]) * sin(fl[i][2]), fl[i][0] * cos(fl[i][1]), tube_radius=None, color = flcol[0:3], reset_zoom=False, opacity=flalpha)
+                mlab.plot3d(fl[i][0] * sin(fl[i][1]) * cos(fl[i][2]), fl[i][0] *     sin(fl[i][1]) * sin(fl[i][2]), fl[i][0] * cos(fl[i][1]), tube_radius=None, color = flcol[0:3], reset_zoom=False, opacity=flalph)
                 fr_count = fr_count + 1
 
         fig.scene.disable_render = False
@@ -209,10 +212,12 @@ def plot3d():
             mlab.text(0.01,0.01,csfrm + ' ' + tarr[dcount].strftime('%Y-%m-%d %H:%M'),opacity=0.5,width=0.07)
 
         # Save output frame(s) and render additional frames
-        for iv in np.arange(1):
-            mlab.view(vph[dvcount],vth[dvcount],vr[dvcount], (0,0,0))
-            mlab.savefig(datdir + 'scratch/'+frmdir+'frm'+'%05.f'%dvcount+'.png')
-            dvcount = dvcount + 1
+        #for iv in np.arange(1):
+        #    mlab.view(vph[dvcount],vth[dvcount],vr[dvcount], (0,0,0))
+        #    mlab.savefig(datdir + 'scratch/'+frmdir+'frm'+'%05.f'%dvcount+'.png')
+        #    dvcount = dvcount + 1
+
+        mlab.savefig(frmdir+'frm'+'%05.f'%dcount+'.png')
 
         # Diagnostic readouts!
         time1 = datetime.datetime.now()
@@ -222,7 +227,8 @@ def plot3d():
             timedel = ((time1 - time0) + timedel) / 2
         timeeta = (nfrm - (dcount+1)) * timedel + time1
         if dcount == (nfrm - 1) : prntend = '\n'
-        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta), end=prntend)
+        #print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta), end=prntend)
+        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
 
         dcount = dcount + 1
 
@@ -233,6 +239,11 @@ def plot2d():
     '''
     Flattens data to a two-dimensional representation for a latitude-longitude projection plot of flux rope fieldlines.
     '''
+
+    # Import 2D plotting libraries
+    from matplotlib import pyplot
+    import palettable
+    import b_sim_netcdf
 
     # A quick announcement
     print('Plotting detected flux ropes in two dimensions...')
@@ -290,7 +301,7 @@ def plot2d():
                 fpth = np.append(fpth, lat[frwhr[0]])
                 fpph = np.append(fpph, lon[frwhr[1]])
         fpr = np.ones(len(fpth))
-        fpth = np.arcsin(-1 * fpth) + pi/2
+        fpth = np.arcsin(-1 * fpth) + np.pi/2
 
         # Trace these flux rope fieldlines for plotting
         if len(fpr) != 0:
@@ -330,8 +341,8 @@ def plot2d():
 
             alfpr1 = fl[i][0][0]
             alfpr2 = fl[i][0][-1]
-            alfpth1 = np.sin(fl[i][1][0] + pi/2)
-            alfpth2 = np.sin(fl[i][1][-1] + pi/2)
+            alfpth1 = np.sin(fl[i][1][0] + np.pi/2)
+            alfpth2 = np.sin(fl[i][1][-1] + np.pi/2)
             alfpph1 = fl[i][2][0]
             alfpph2 = fl[i][2][-1]
 
@@ -342,16 +353,16 @@ def plot2d():
             ept = len(fl[i][2])-1
             if np.size(cph) != 0:
                 for dpt in cph:
-                    ax.plot(fl[i][2][spt:dpt], np.sin(fl[i][1][spt:dpt]+pi/2), color=flcol, ls=lnsty, alpha=lnalpha, lw=lnthick)
+                    ax.plot(fl[i][2][spt:dpt], np.sin(fl[i][1][spt:dpt]+np.pi/2), color=flcol, ls=lnsty, alpha=lnalpha, lw=lnthick)
                     spt = dpt
-                ax.plot(fl[i][2][dpt:ept], np.sin(fl[i][1][dpt:ept]+pi/2), color=flcol, ls=lnsty, alpha=lnalpha, lw=lnthick)
+                ax.plot(fl[i][2][dpt:ept], np.sin(fl[i][1][dpt:ept]+np.pi/2), color=flcol, ls=lnsty, alpha=lnalpha, lw=lnthick)
             else:
-                ax.plot(fl[i][2], np.sin(fl[i][1]+pi/2), color=flcol, ls=lnsty, alpha=lnalpha, lw=lnthick)
+                ax.plot(fl[i][2], np.sin(fl[i][1]+np.pi/2), color=flcol, ls=lnsty, alpha=lnalpha, lw=lnthick)
 
         ax.set_title(csfrm.replace('_', '\_') + ' ' + tarr[dcount].strftime('%Y-%m-%d %H:%M'))
         ax.set_xlabel('Longitude')
         ax.set_ylabel('Sine latitude')
-        ax.set_xlim([0,2*pi])
+        ax.set_xlim([0,2*np.pi])
         ax.set_ylim([-1,1])
         pyplot.tight_layout()
         pyplot.savefig(frmdir + 'frm'+'%05.f'%dcount+'.png')
@@ -364,7 +375,8 @@ def plot2d():
             timedel = ((time1 - time0) + timedel) / 2
         timeeta = (nfrm - (dcount+1)) * timedel + time1
         if dcount == (nfrm - 1) : prntend = '\n'
-        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta), end=prntend)
+        #print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta), end=prntend)
+        print('Frame ' + '%05.f'%(dcount+1) + ' / ' + '%05.f'%nfrm + ' - ' + str(timedel) + 's - ETA ' + str(timeeta))
 
         dcount = dcount + 1
 
